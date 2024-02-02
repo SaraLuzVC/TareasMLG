@@ -1,10 +1,17 @@
 ---
 title: "Tarea 2"
 author: "Sara"
-date: "6 de febrero 2024"
+date: "6-feb-2024"
 format: html
 editor: source
 ---
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(patchwork)
+```
+
 
 1. Estimando una media Poisson usando una inicial discreta. Supongan que son dueños de una compañía de transporte con una flota grande de camiones. Las descomposturas ocurren aleatoriamente en el tiempo y supóngase que el número de descomposturas durante un
 intervalo de $t$ días sigue un distribución Poisson con media $λt$. El parámetro $λ$ es la tasa de descompostura diaria. Los posibles valores para $λ$ son $0.5$, $1$, $1.5$, $2$, $2.5$ y $3$, con respectivas probabilidades $0.1$, $0.2$, $0.3$, $0.2$, $0.15$ y $0.05$. Si uno observa $y$ descomposturas, entonces la probabilidad posterior de $λ$ es proporcional a 
@@ -50,7 +57,11 @@ c. Grafica la densidad y comenten sobre sus características principales.
 
 d. Calcula la media posterior y desviación estándar posterior.
 
-5. Robustez Bayesiana Supongan que están a punto de lanzar una moneda que creen que es honesta. Si $p$ denota la probabilidad de obtener sol, entonces su mejor creencia es que $p = 0.5$
+
+
+
+
+5. **Robustez Bayesiana.** Supongan que están a punto de lanzar una moneda que creen que es honesta. Si $p$ denota la probabilidad de obtener sol, entonces su mejor creencia es que $p = 0.5$
 
 Adicionalmente, creen que es altamente probable que la moneda sea cercana a honesta, lo que cuantifican como $P (0.44 ≤ p ≤ 0.56) = 0.9$. Consideren las siguientes dos iniciales para $p$:
 
@@ -60,22 +71,236 @@ P2 $p ∼ 0.9beta(500, 500) + 0.1beta(1, 1)$
 
 a. Simular $1000$ valores de cada densidad inicial P1 y P2. Resumiendo las muestras simuladas, mostrar que ambas iniciales concuerdan con las creencias iniciales acerca de la probabilidad $p$ del lanzamiento de moneda.
 
+```{r}
+#semilla
+set.seed(12345)
+#Parámetros
+alpha_1_ini = 100
+beta_1_ini = 100
+###
+alpha_21_ini = 500
+beta_21_ini = 500
+alpha_22_ini = 1
+beta_22_ini = 1
+
+#Simulación de P1 y P2 inicial
+P1_inicial <-tibble (p = rbeta(1000, alpha_1_ini, beta_1_ini))
+P2_inicial <-tibble (p =0.9*rbeta(1000, alpha_21_ini, beta_21_ini)+0.1*rbeta(1000, alpha_22_ini, beta_22_ini))
+# Comprobamos que al menos el 90% esté en el intervalo [0.44, 0.56]
+print(sum(P1_inicial>=0.44 & P1_inicial<=0.56) / 1000)
+print(sum(P2_inicial>=0.44 & P2_inicial<=0.56) / 1000)
+quantile(P1_inicial$p , c(0.05,0.95))
+quantile(P2_inicial$p , c(0.05,0.95))
+```
+
+**Por tanto cumplen con tener al menos el 90% de probabilidad de $p \in [0.44, 0.56]$ **
+
+```{r}
+g1 <- ggplot(P1_inicial) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g2 <- ggplot(P2_inicial) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g1+g2
+```
+
+
 b. Supongan que lanzan la moneda $100$ veces y obtienen $45$ soles. Simular $1000$ valores de las distribuciones posteriores P1 y P2, y calcular intervalos de probabilidad del $90 %$.
+
+**Para P1, se usa el conjugado Beta-Binomial, dado que la distribución inicial es una Beta y la verosimilitud está dada por una Binomial:**
+
+$$\text{Likelihood: } Binomial(n,p)\Rightarrow P(x|n,p)=\binom{n}{x}p^x(1-p)^{n-x}, p\in[0,1]$$
+**Por lo que la posterior será de la forma:**
+$$\text{Posterior} \propto \text{Likelihood} \times \text{Prior} $$
+$$\text{Posterior: }Beta(\alpha+x,\beta+n-x)$$
+
+```{r}
+n = 100 # en 100 lanzamientos
+x_B = 45  # se obtienen 45 éxitos
+# Nuevos parámetros
+alpha_1_posB = alpha_1_ini + x_B
+beta_1_posB = beta_1_ini + n - x_B
+
+alpha_21_posB = alpha_21_ini + x_B
+beta_21_posB = beta_21_ini + n - x_B
+alpha_22_posB = alpha_22_ini + x_B
+beta_22_posB = beta_22_ini + n - x_B
+```
+
+**Haciendo la simulación:**
+
+```{r}
+P1_posB <-tibble (p = rbeta(1000, alpha_1_posB, beta_1_posB))
+P2_posB <-tibble (p =0.9*rbeta(1000, alpha_21_posB, beta_21_posB)+0.1*rbeta(1000, alpha_22_posB, beta_22_posB))
+
+g3 <- ggplot(P1_posB) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g4 <- ggplot(P2_posB) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g1+g2
+
+```
+
+**Calculando intervalos de probabilidad:**
+
+```{r}
+quantile(P1_posB$p , c(0.05,0.95))
+quantile(P2_posB$p , c(0.05,0.95))
+```
+
 
 c. Supongan que sólo observan $30$ soles de los $100$ lanzamientos. Nuevamente simular $1000$ valores de las dos posteriores y calcular intervalos de probabilidad del $90 %$.
 
+```{r}
+n = 100 # en 100 lanzamientos
+x_C = 30  # se obtienen 45 éxitos
+# Nuevos parámetros
+alpha_1_posC = alpha_1_ini + x_C
+beta_1_posC = beta_1_ini + n - x_C
+
+alpha_21_posC = alpha_21_ini + x_C
+beta_21_posC = beta_21_ini + n - x_C
+alpha_22_posC = alpha_22_ini + x_C
+beta_22_posC = beta_22_ini + n - x_C
+```
+
+**Haciendo la simulación:**
+
+```{r}
+P1_posC <-tibble (p = rbeta(1000, alpha_1_posC, beta_1_posC))
+P2_posC <-tibble (p =0.9*rbeta(1000, alpha_21_posC, beta_21_posC)+0.1*rbeta(1000, alpha_22_posC, beta_22_posC))
+
+g3 <- ggplot(P1_posC) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g4 <- ggplot(P2_posC) + 
+  geom_histogram(aes(x = p, y = ..density..), bins = 30)
+g1+g2
+
+```
+
+**Calculando intervalos de probabilidad:**
+
+```{r}
+quantile(P1_posC$p , c(0.05,0.95))
+quantile(P2_posC$p , c(0.05,0.95))
+```
+
 d. Viendo los resultados de (b) y (c), comentar sobre la robustez de la inferencia con respecto a la elección de la densidad inicial en cada caso.
 
-6. Aprendiendo de datos agrupados. Supongan que manejan en carretera y típicamente manejan a una velocidad constante de $70km/h$. Un día, rebasan un carro y son rebasados por $17$ carros. Supongan que las velocidades son distribuídas $N (µ, 100)$. Si rebasan $s$ carros y son rebasados por $f$ ,
+```{r}
+P1_inicial <- P1_inicial %>% mutate(dist = "P1 inicial", t = "inicial")
+P1_posB <- P1_posB %>% mutate(dist = "P1 posterior B", t = "posterior B")
+P1_posC <- P1_posC %>% mutate(dist = "P1 posterior C", t = "posterior C")
 
+P2_inicial <- P2_inicial %>% mutate(dist = "P2 inicial", t = "inicial")
+P2_posB <- P2_posB %>% mutate(dist = "P2 posterior B", t = "posterior B")
+P2_posC <- P2_posC %>% mutate(dist = "P2 posterior C", t = "posterior C")
+
+sims <- bind_rows(P1_inicial, P1_posB, P1_posC, P2_inicial, P2_posB, P2_posC)
+
+g5 <- ggplot(sims, aes(x = p, fill = dist)) +
+  geom_histogram(aes(x = p), bins = 30, alpha = 0.5, position = "identity")
+g5 + facet_wrap(~t)
+```
+
+**La inicial P2, tiene distribuciones posteriores B y C más angostas que para la inicial P1, e incluso con áreas de alta desidad de probabilidad distintas en el caso de una posterior C**
+
+
+
+
+
+6. **Aprendiendo de datos agrupados**. Supongan que manejan en carretera y típicamente manejan a una velocidad constante de $70km/h$. Un día, rebasan un carro y son rebasados por $17$ carros. Supongan que las velocidades son distribuídas $N (µ, 100)$. Si rebasan $s$ carros y son rebasados por $f$,
+
+**Considerando que los carros o los rebasas o te rebasan, suponemos que sigue una distribución Binomial.**
+
+**Por lo que la función de verosimilitud esta dada por:**
+$$\text{Likelihood: } Binomial(n,p)\Rightarrow P(p|n,x)=\binom{n}{x}p^x(1-p)^{n-x}, p\in[0,1]$$
+**donde $x=s$ el número de carros que te rebasan, $(n-x)=f$ es igual al número de carros que rebasas, y la proporción $p\propto\Phi(y,\mu,\sigma) es proporcional la distribución acumulada de la distribución de velocidades $\mathcal{N}(\mu,\sigma^2=100)$. Sustituyendo obtenemos**
+
+$$\mathcal{L}(\mu)\propto\Phi(70,\mu,100)^s(1-\Phi(70,\mu,100))^f$$
+
+**Y la log-verosmilitud será:**
+
+$$\log(\mathcal{L})= \log\binom{n}{x}+x\log(p)+(n-x)\log(1-p)$$
+$$\log(\mathcal{L(\mu)})\propto s\log(\Phi(70,\mu,100))+f\log(1-\Phi(70,\mu,100))$$
 a. ¿Cuál es la verosimilitud de $µ$?
+
+**Calculando:**
+
+```{r}
+#Parámetros
+s <- 17
+f <- 1
+y <- 70
+sigma <- 10
+mu <- seq(1,200,1)
+
+# Creamos la CDF o Phi
+Phi <- pnorm(y, mu, sigma, log = FALSE)
+
+#Hacemos la verosimilitud
+likelihood <- Phi^s*(1-Phi)^f
+#likelihood <- s*log(Phi) + f*log(1-Phi)
+
+plot(mu,likelihood, type = 'l', lwd = 2, xlab = "", ylab = "")
+```
+
+**Encontrando el máximo:**
+
+```{r}
+max(likelihood)
+Phi_mu <- pnorm(y, 54, sigma, log = FALSE)
+#s*log(Phi_mu) + f*log(1-Phi_mu)
+Phi_mu^s*(1-Phi_mu)^f
+
+```
+
+**La velocidad promedio es 54km/h**
+
+
 
 b. Asignando una densidad inicial plana para $µ$, si $s = 1$ y $f = 17$, graficar la densidad
 posterior de $µ$.
 
-c. Usando la densidad encontrada en (a), encontrar la media posterior de $µ$.
+**Sabiendo que podemos simular una distribución uniforme con una $beta(1,1)$**
+
+```{r}
+#define range
+x = seq(0, 1, length=200)
+
+#create plot of Beta distribution with shape parameters 2 and 10
+plot(x, dbeta(x, 1, 1), type='l')
+```
+
+**Multiplicamos la inicial por la verosimilitud para obtener la posterior**
+
+```{r}
+#Parámetros
+s <- 1
+f <- 17
+
+likelihood <- Phi^s*(1-Phi)^f
+prior <- dbeta(x,1 ,1)
+posterior <- prior*likelihood/sum(prior*likelihood)
+plot(mu, posterior, type = 'l', ylab = "posterior", main = "Densidad posterior de mu")
+```
+
+
+c. Usando la densidad encontrada en (b), encontrar la media posterior de $µ$.
+
+**Hacemos una suma ponderada para obtener el promedio**
+
+```{r}
+sum(mu * posterior)
+```
 
 d. Encontrar la probabilidad de que la velocidad promedio de los carros exceda $80$ km/h.
+
+**Para esto sumamos los valores de la distrbución de 80 a 200 km/h**
+
+```{r}
+sum(posterior[80:200])
+```
+
 
 7. *Problema de Behrens-Fisher*. Supongan que se observan dos muestras normales independientes, la primera se distribuye de acuerdo a una $N(µ_1 , σ_1^2)$ y la segunda de acuerdo a $N(µ_2 , σ_2^2)$ . Denoten la primera muestra por $x_1 , . . . , x_m$ y la segunda muestra por $y_1 . . . , y_n$
 
@@ -109,8 +334,8 @@ donde $a = \exp(θ_1 )$ y $b = \exp(θ_2 )$. Usa este marco para modelar los dat
 El número de inssectos en las trampas se muestran a continuación:
 
 ```{r}
-insectos = c(2,5,0,2,3,1,3,4,3,0,3
-             2,1,1,0,6,0,0,3,0,1,1
+insectos = c(2,5,0,2,3,1,3,4,3,0,3,
+             2,1,1,0,6,0,0,3,0,1,1,
              5,0,1,2,0,0,2,1,1,1,0)
 ```
 
