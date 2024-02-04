@@ -12,6 +12,7 @@ library(tidyverse)
 library(patchwork)
 ```
 
+# Modelo poisson
 
 1. Estimando una media Poisson usando una inicial discreta. Supongan que son dueños de una compañía de transporte con una flota grande de camiones. Las descomposturas ocurren aleatoriamente en el tiempo y supóngase que el número de descomposturas durante un
 intervalo de $t$ días sigue un distribución Poisson con media $λt$. El parámetro $λ$ es la tasa de descompostura diaria. Los posibles valores para $λ$ son $0.5$, $1$, $1.5$, $2$, $2.5$ y $3$, con respectivas probabilidades $0.1$, $0.2$, $0.3$, $0.2$, $0.15$ y $0.05$. Si uno observa $y$ descomposturas, entonces la probabilidad posterior de $λ$ es proporcional a 
@@ -21,9 +22,108 @@ donde $g$ es la distribución inicial.
 
 a. Si $12$ camiones se descomponen en un periodo de $6$ días, encontrar la probabilidad posterior para las diferentes tasas.
 
+## Datos proporcionados
+
+
+```{r}
+lambda_values <- c(0.5, 1, 1.5, 2, 2.5, 3)
+probabilidades_iniciales <- c(0.1, 0.2, 0.3, 0.2, 0.15, 0.05)
+t <- 6  # días
+y <- 12  # descomposturas observadas
+```
+
+## Probabilidades iniciales
+
+```{r}
+
+iniciales <- data.frame(lambda = lambda_values, prob_inicial = probabilidades_iniciales)
+
+# Creamos un gráfico de barras para visualizar las probabilidades iniciales
+ggplot(iniciales, aes(x = as.factor(lambda), y = prob_inicial,label = scales::percent(prob_inicial))) +
+  geom_bar(stat = "identity", fill = "lightcoral", color = "black") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  labs(title = "Probabilidades Iniciales",
+       x = "Tasa de Descompostura (lambda)",
+       y = "Probabilidad Inicial") +
+  theme_minimal()
+```
+
+## Cálculo de probabilidades posteriores
+
+```{r}
+
+# Calculamos las probabilidades posteriores proporcionales
+prob_posterior_proporcional <- probabilidades_iniciales * exp(-t * lambda_values) * (t * lambda_values) ^ y
+
+# Normalizamos las probabilidades
+prob_posterior_normalizadas <- prob_posterior_proporcional / sum(prob_posterior_proporcional)
+
+# Creamos un data frame con los resultados
+resultados <- data.frame(lambda = lambda_values, prob_posterior = prob_posterior_normalizadas)
+
+# Crea un gráfico de barras para visualizar las probabilidades normalizadas
+ggplot(resultados, aes(x = as.factor(lambda), y = prob_posterior,label = scales::percent(prob_posterior_normalizadas))) +
+  geom_bar(stat = "identity", fill = "skyblue", color = "black") +
+  geom_text(position = position_stack(vjust = 0.5), size = 3) +
+  labs(title = "Probabilidades Posteriores Normalizadas",
+       x = "Tasa de Descompostura (lambda)",
+       y = "Probabilidad Normalizada") +
+  theme_minimal()
+```
+
+## Comparativo de probabilidades iniciales y posteriores
+
+```{r}
+# Creamos data frames con los resultados iniciales y posteriores
+iniciales <- data.frame(lambda = lambda_values, prob = probabilidades_iniciales, tipo = "Inicial")
+posteriores <- data.frame(lambda = lambda_values, prob = prob_posterior_normalizadas, tipo = "Posterior")
+
+
+# Combina los data frames para la visualización comparativa
+resultados_combinados <- rbind(iniciales, posteriores)
+
+
+ggplot(resultados_combinados, aes(x = as.factor(lambda), y = prob, fill = tipo, label = scales::percent(prob))) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", width = 0.7) +
+  geom_text(position = position_dodge(width = 0.7), vjust = -0.5, size = 3) +
+  labs(title = "Comparación entre Probabilidades Iniciales y Posteriores",
+       x = "Tasa de Descompostura (lambda)",
+       y = "Probabilidad") +
+  scale_fill_manual(values = c("lightcoral", "skyblue")) +
+  theme_minimal()
+```
+
+
 b. Encontrar la probabilidad de que no haya descomposturas durante la siguiente semana.
 
 Hint: Si la tasa es $λ$, la probabilidad condicional de no descomposturas durante un periodo de $7$ días está dado por $\exp(−7λ)$. Se puede calcular esta probabilidad predictiva multiplicando la lista de probabilidades condicionales por las probabilidades posteriores de $λ$ y encontrando la suma de los productos
+
+## Cálculo de probabilidad mediante la función de masa de probabilidad de la distribución poisson.
+
+La probabilidad de que no haya descomposturas $(P(X=0))$ en un periodo de tiempo dado se puede calcular usando la función de masa de probabilidad de la distribución Poisson:
+
+$P(X=0)=\frac{!e^{−λ}⋅λ}{0}​$
+
+Donde $X$ es la variable aleatoria que representa el número de descomposturas, $λ$ es la tasa de descompostura diaria y $e$ es la base del logaritmo natural.
+
+La probabilidad de no tener descomposturas en una semana (7 días) sería la probabilidad de no tener descomposturas en un día $P(X=0))$ elevada a la potencia de 7 (días):
+
+$P(No\_descomposturas\_en\_\_7\_días)=[P(X=0)]^7$
+
+```{r}
+
+# Probabilidad predictiva condicional de no tener descomposturas en 7 días
+prob_predictiva_condicional_7_dias <- exp(-7 * lambda_values)
+
+# Probabilidad ponderada por las probabilidades posteriores
+prob_no_descomposturas_7_dias_ponderada <- sum(prob_predictiva_condicional_7_dias * prob_posterior_normalizadas)
+
+cat("Probabilidad de no tener descomposturas en 7 días:", prob_no_descomposturas_7_dias_ponderada, "\n")
+```
+
+Probabilidad de no tener descomposturas en 7 días: 4.640932e-05
+
+
 
 2. Estimando una proporción y predicción de una muestra futura. Un estudio reporta sobre los efectos de largo plazo de exposición a bajas dosis de plomo en niños. Los investigadores analizaron el contenido de plomo en la caída de los dientes de leche. De los niños cuyos dientes tienen un contenido de plomo mayor que $22.22$ ppm, $22$ eventualmente se graduaron de la preparatoria y $7$ no. Supongan que su densidad inicial para $p$, la proporción de todos tales niños que se graduaron de preparatoria es $beta(1, 1)$, y posterior es $beta(23, 8)$.
 
@@ -47,7 +147,32 @@ b. Calcular la función de verosimilitud utilizando como estadística suficiente
 
 * Encontrar un intervalo de probabilidad de $80 %$ para $µ$.
 
+
+# Modelo Cauchy 
+
 4. Modelo muestral Cauchy. Supongan que se observa una muestra aleatoria $y_1 , . . . , y_n$ de una densidad Cauchy con parámetro de localización $θ$ y parámetro de escala $1$. Si una inicial uniforme se considera para $θ$, entonces la densidad posterior, ¿cuál es? Supongan que se observan los datos $0, 10, 9, 8, 11, 3, 3, 8, 8, 11$.
+
+
+Con base en el Teorema de Bayes: la densidad posterior es proporcional al producto de la función de verosimilitud y la densidad a priori.
+
+La función de verosimilitud es la densidad de una distribución Cauchy con parámetro de localización $θ$ y parámetro de escala $1$ :
+
+$f(yi​∣θ)=\frac{1}{π(1+(yi​−θ)2)}​$
+
+La densidad a priori es una uniforme para $θ$, por lo que $\pi(\theta)=constante$.
+
+Por lo tanto la densidad posterior es:
+
+$Posterior(θ∣y1​,…,yn​)∝\prod_{i=1}^n​f(yi​∣θ)⋅π(θ)$
+
+Por simplicidad, podemos trabajar con el logaritmo de la densidad posterior para facilitar los cálculos.
+
+$log(Posterior(θ∣y1​,…,yn​))∝\sum_{i=1}^n​log(f(yi​∣θ))+log(π(θ))$
+
+Por lo tanto:
+
+$log(Posterior(θ∣y1​,…,yn​))∝\sum_{i=1}^{10}​log(\frac{1}{π(1+(yi​−θ)2)}​)+constante$
+
 
 a. Calcula un grid para $θ$ de $-2$ a $12$ en pasos de $0.1$
 
@@ -55,9 +180,91 @@ b. Calcula la densidad posterior en este grid.
 
 c. Grafica la densidad y comenten sobre sus características principales.
 
+# Datos observados
+
+```{r}
+
+datos <- c(0, 10, 9, 8, 11, 3, 3, 8, 8, 11)
+
+
+```
+
+## Función de densidad de la distribución Cauchy
+
+```{r}
+
+densidad_cauchy <- function(theta, datos) {
+  sum(log(1 / (pi * (1 + (datos - theta)^2))))
+}
+
+
+```
+
+## Definimos una secuencia de valores para theta
+
+```{r}
+
+theta_valores <- seq(-2, 12, by = 0.1)
+
+```
+
+## Cálculo de la posterior
+
+```{r}
+
+# Calculamos la densidad posterior no normalizada
+posterior_no_normalizada <- exp(sapply(theta_valores, function(theta) densidad_cauchy(theta, datos)))
+
+# Normalizamos la densidad posterior
+posterior_normalizada <- posterior_no_normalizada / sum(posterior_no_normalizada)
+
+#Moda posterior (donde la densidad posterior es máxima) y cuantiles
+moda <- theta_valores[which.max(posterior_normalizada)]
+cuantiles_95 <- quantile(theta_valores, c(0.025, 0.975))
+
+# Graficamos la densidad posterior
+plot(theta_valores, posterior_normalizada, type = 'l', col = 'skyblue', lwd = 2,
+     xlab = expression(theta), ylab = 'Densidad Posterior Normalizada',
+     main = 'Densidad Posterior para el parámetro de localización en una Cauchy')
+
+# Agregamos líneas para destacar la moda y los cuantiles
+abline(v = moda, col = 'red', lty = 2)
+abline(v = cuantiles_95, col = 'green', lty = 2)
+
+# Etiquetas para la moda y los cuantiles a lo largo del eje x
+axis(1, at = c(moda, cuantiles_95[1], cuantiles_95[2]), labels = c(round(moda, 2), round(cuantiles_95[1], 2), round(cuantiles_95[2], 2)), col = c('red', 'blue', 'green'), cex.axis = 0.8)
+
+# Leyenda en una ubicación más adecuada
+legend("topright", legend = c("Densidad Posterior", "Moda", "Cuantiles 95%"), col = c('skyblue', 'red', 'green'), lty = c(1, 2, 2), lwd = 2, cex = 0.6)
+```
+
+Entre las características podemos observar:
+
+1.  Al tratarse de una previa uniforme, su contribución a la densidad posterior será constante lo que significa que la posterior estará dominada principalmente por la verosimilitud, en este caso la distribución Cauchy.
+2.  La moda de los datos se encuentra en $\theta = 8.4$
+3.  Para estimar la variabilidad o incertidumbre podemos basarnos en un intervalo de credibilidad del 95% (-1.65 y 11.65)
+
+
 d. Calcula la media posterior y desviación estándar posterior.
 
+Para calcular la media posterior y la desviación estándar posterior utilizamos la densidad posterior. La media posterior se calcula como la integral del producto de la variable y la densidad posterior. La varianza es equivalente a la suma de los cuadrados de la resta de los valores de la variable - la media posterior y estos multiplicados por la densidad posterior.
 
+```{r}
+
+# Media posterior
+media_posterior <- sum(theta_valores * posterior_normalizada)
+
+# Varianza posterior
+varianza_posterior <- sum((theta_valores - media_posterior)^2 * posterior_normalizada)
+
+# Desviación estándar posterior
+desviacion_estandar_posterior <- sqrt(varianza_posterior)
+
+# Imprimimos los resultados
+cat("Media Posterior:", round(media_posterior, 2), "\n")
+cat("Desviación Estándar Posterior:", round(desviacion_estandar_posterior, 2), "\n")
+
+```
 
 
 
