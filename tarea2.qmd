@@ -123,30 +123,125 @@ cat("Probabilidad de no tener descomposturas en 7 días:", prob_no_descompostura
 
 Probabilidad de no tener descomposturas en 7 días: 4.640932e-05
 
+2. **Estimando una proporción y predicción de una muestra futura.** Un estudio reporta sobre los efectos de largo plazo de exposición a bajas dosis de plomo en niños. Los investigadores analizaron el contenido de plomo en la caída de los dientes de leche. De los niños cuyos dientes tienen un contenido de plomo mayor que 22.22 ppm, 22 eventualmente se graduaron de la preparatoria y 7 no. Supongan que su densidad inicial para p, la proporción de todos tales niños que se graduaron de preparatoria es $beta(1, 1)$, y posterior es $beta(23, 8)$.
 
+a. Encontrar un intervalo estimado de 90 % para $p$.
 
-2. Estimando una proporción y predicción de una muestra futura. Un estudio reporta sobre los efectos de largo plazo de exposición a bajas dosis de plomo en niños. Los investigadores analizaron el contenido de plomo en la caída de los dientes de leche. De los niños cuyos dientes tienen un contenido de plomo mayor que $22.22$ ppm, $22$ eventualmente se graduaron de la preparatoria y $7$ no. Supongan que su densidad inicial para $p$, la proporción de todos tales niños que se graduaron de preparatoria es $beta(1, 1)$, y posterior es $beta(23, 8)$.
+Dado que la distribución posterior es $beta(23, 8)$, podemos utilizar cuantiles de esta distribución para obtener el intervalo de credibilidad.
 
-a. Encontrar un intervalo estimado de $90 %$ para $p$.
-
-b. Encontrar la probabilidad de que $p$ exceda 0.6.
-
-3. Estimando una media normal posterior con una inicial discreta. Supongamos que están interesados en estimar el promedio de caida de lluvia por año $µ$ en (cm) para una ciudad grande del Centro de México. Supongan que la caída anual individual $y_1 , . . . , y_n$ son obtenidas de una población que se supone $N (µ, 100)$. Antes de recolectar los datos, supongan que creen que la lluvia media puede estar en los siguiente valores con respectivas probabilidades
-
+El intervalo de credibilidad del 90% para $p$ se obtiene utilizando los cuantiles de la distribución $beta(23,8)$.
 ```{r}
-miu = c(20,30,40,50,60,70)
+# Parámetros de la distribución posterior
+alpha_posterior <- 23
+beta_posterior <- 8
 
-g_miu = c(0.1, 0.15, 0.25, 1, 0.25, 0.15, 0.1)
+# Intervalo de credibilidad del 90% para p
+intervalo_credibilidad <- qbeta(c(0.05, 0.95), alpha_posterior, beta_posterior)
+
+cat("Intervalo de 90% para p:", intervalo_credibilidad, "\n")
 ```
 
-a. Supongan que se observan los totales de caída de lluvia $38.6$, $42.4$, $57.5$, $40.5$, $51.7$, $67.1$, $33.4$, $60.9$, $64.1$, $40.1$, $40.7$ y $6.4$. Calcular la media.
+b. Probabilidad de que p exceda 0.6
+Para encontrar la probabilidad de que p exceda 0.6,utilizamos la función de densidad de probabilidad acumulativa (CDF) de la distribución $beta(23,8)$. 
+```{r}
+# Probabilidad de que p exceda 0.6
+prob_exceder_0.6 <- 1 - pbeta(0.6, alpha_posterior, beta_posterior)
 
-b. Calcular la función de verosimilitud utilizando como estadística suficiente la media $ȳ$.
+cat("Probabilidad de que p exceda 0.6:", prob_exceder_0.6, "\n")
+```
 
-* Calcular las probabilidades posteriores para $µ$
+3. **Estimando una media normal posterior con una inicial discreta.** Supongamos que están interesados en estimar el promedio de caida de lluvia por año $μ$ en (cm) para una ciudad grande del Centro de México. Supongan que la caída anual individual $y1, . . . , yn$ son obtenidas de una población que se supone $N(μ, 100)$. Antes de recolectar los datos, supongan que creen que la lluvia media puede estar en los siguiente valores con respectivas probabilidades
+| μ   | 20 | 30 | 40 | 50 | 60 | 70 |
+| g(μ) | 0.1 | 0.15 | 0.25 | 0.25 | 0.15 | 0.1 |
 
-* Encontrar un intervalo de probabilidad de $80 %$ para $µ$.
+a. Supongan que se observan los totales de caída de lluvia 38.6, 42.4, 57.5, 40.5, 51.7, 67.1, 33.4, 60.9, 64.1, 40.1, 40.7 y 6.4. Calcular la media.
+```{r}
+# Datos de caída de lluvia
+datos_lluvia <- c(38.6, 42.4, 57.5, 40.5, 51.7, 67.1, 33.4, 60.9, 64.1, 40.1, 40.7, 6.4)
 
+# Calcular la media muestral
+media_lluvia <- mean(datos_lluvia)
+
+# Imprimir el resultado
+cat("La media de la caída de lluvia es:", media_lluvia, "centímetros\n")
+```
+
+
+b. Calcular la función de verosimilitud utilizando como estadística suficiente la media $\bar{y}$.
+
+La función de verosimilitud es una medida de la probabilidad de observar los datos dados ciertos valores de los parámetros. En este caso, la función de verosimilitud se refiere a la probabilidad de observar los totales de caída de lluvia $y$ dados distintos valores de la media $\mu$, asumiendo una distribución normal con varianza conocida (\(\sigma^2 = 100\)).
+
+La función de verosimilitud \(L(\mu|\mathbf{y})\) se puede expresar para una muestra de \(n\) observaciones como el producto de las densidades de probabilidad de cada observación:
+
+\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} f(y_i|\mu) \]
+
+Dado que estamos asumiendo una distribución normal, la función de densidad de probabilidad para una observación individual \(y_i\) es:
+
+\[ f(y_i|\mu) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} \]
+
+Sustituimos esta expresión en la función de verosimilitud:
+
+\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} \]
+
+Dado que la varianza es conocida (\(\sigma^2 = 100\)), podemos simplificar aún más:
+
+\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi \cdot 100}} e^{-\frac{(y_i - \mu)^2}{2 \cdot 100}} \]
+
+```{r}
+# Parámetro de la distribución (media poblacional)
+mu <- seq(20, 70, by = 1)  # Valores posibles de la media
+
+# Función de verosimilitud
+verosimilitud <- prod(dnorm(datos_lluvia, mean = mu, sd = sqrt(100)))
+
+# Imprimir el resultado
+cat("La función de verosimilitud para y barra es:", verosimilitud, "\n")
+```
+
+ *Calcular las probabilidades posteriores para $μ$.
+ 
+Para calcular las probabilidades posteriores para \(\mu\) utilizando el enfoque bayesiano, necesitamos combinar la información de la función de verosimilitud y la distribución prior. Las probabilidades posteriores se obtienen aplicando el Teorema de Bayes.
+
+La forma general de la distribución posterior \(f(\mu|\mathbf{y})\) es proporcional al producto de la función de verosimilitud y la distribución prior:
+
+\[ f(\mu|\mathbf{y}) \propto g(\mu) \cdot f(\mathbf{y}|\mu) \]
+
+Donde:
+- \( g(\mu) \) es la distribución prior discreta para \(\mu\) con probabilidades \(0.1, 0.15, 0.25, 0.25, 0.15, 0.1\), y
+- \( f(\mathbf{y}|\mu) \) es la función de verosimilitud calculada a partir de los datos de caída de lluvia observados.
+
+En este caso, podemos calcular las probabilidades posteriores para \(\mu\) para cada uno de los valores posibles utilizando las probabilidades de la prior y la función de verosimilitud.
+
+Las probabilidades están normalizadas para sumar 1.
+
+```{r}
+# Parámetros prior
+data <- data.frame(mu=c(20, 30, 40, 50, 60, 70),
+                   prob_prior=c(0.1, 0.15, 0.25, 0.25, 0.15, 0.1))
+
+# Probabilidades posteriores
+data <- data %>%
+  mutate(verosim=exp(-12*((media_lluvia - mu)^2)/(2*100)),
+         dist_post=verosim*prob_prior,
+         prob_post=dist_post/sum(dist_post))
+
+#Resultado
+res <- data[, c("mu", "prob_post")]
+res
+```
+
+ *Encontrar un intervalo de probabilidad de 80% para $μ$.
+```{r}
+# Probabilidad acumulada
+data <- data %>% 
+  mutate(cum_post=cumsum(prob_post))
+
+mu_10 <- data$mu[which.max(data$cum_post >= 0.1)]
+mu_90 <- data$mu[which.max(data$cum_post >= 0.9)]
+
+# Imprimir el intervalo de probabilidad del 80%
+cat("Intervalo de probabilidad del 80% para mu:", mu_10, "a", mu_90, "\n")
+```
 
 # Modelo Cauchy 
 
