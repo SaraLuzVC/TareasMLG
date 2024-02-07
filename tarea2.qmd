@@ -2,7 +2,7 @@
 title: "Tarea 2"
 author: "Sara"
 date: "6-feb-2024"
-format: html
+format: pdf
 editor: source
 ---
 
@@ -171,21 +171,21 @@ b. Calcular la función de verosimilitud utilizando como estadística suficiente
 
 La función de verosimilitud es una medida de la probabilidad de observar los datos dados ciertos valores de los parámetros. En este caso, la función de verosimilitud se refiere a la probabilidad de observar los totales de caída de lluvia $y$ dados distintos valores de la media $\mu$, asumiendo una distribución normal con varianza conocida (\(\sigma^2 = 100\)).
 
-La función de verosimilitud \(L(\mu|\mathbf{y})\) se puede expresar para una muestra de \(n\) observaciones como el producto de las densidades de probabilidad de cada observación:
+La función de verosimilitud $(L(\mu|\mathbf{y}))$ se puede expresar para una muestra de \(n\) observaciones como el producto de las densidades de probabilidad de cada observación:
 
-\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} f(y_i|\mu) \]
+$$ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} f(y_i|\mu) $$
 
 Dado que estamos asumiendo una distribución normal, la función de densidad de probabilidad para una observación individual \(y_i\) es:
 
-\[ f(y_i|\mu) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} \]
+$$ f(y_i|\mu) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} $$
 
 Sustituimos esta expresión en la función de verosimilitud:
 
-\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} \]
+$$ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(y_i - \mu)^2}{2\sigma^2}} $$
 
 Dado que la varianza es conocida (\(\sigma^2 = 100\)), podemos simplificar aún más:
 
-\[ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi \cdot 100}} e^{-\frac{(y_i - \mu)^2}{2 \cdot 100}} \]
+$$ L(\mu|\mathbf{y}) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi \cdot 100}} e^{-\frac{(y_i - \mu)^2}{2 \cdot 100}} $$
 
 ```{r}
 # Parámetro de la distribución (media poblacional)
@@ -202,13 +202,13 @@ cat("La función de verosimilitud para y barra es:", verosimilitud, "\n")
  
 Para calcular las probabilidades posteriores para \(\mu\) utilizando el enfoque bayesiano, necesitamos combinar la información de la función de verosimilitud y la distribución prior. Las probabilidades posteriores se obtienen aplicando el Teorema de Bayes.
 
-La forma general de la distribución posterior \(f(\mu|\mathbf{y})\) es proporcional al producto de la función de verosimilitud y la distribución prior:
+La forma general de la distribución posterior $f(\mu|\mathbf{y})$ es proporcional al producto de la función de verosimilitud y la distribución prior:
 
-\[ f(\mu|\mathbf{y}) \propto g(\mu) \cdot f(\mathbf{y}|\mu) \]
+$$ f(\mu|\mathbf{y}) \propto g(\mu) \cdot f(\mathbf{y}|\mu) $$
 
 Donde:
-- \( g(\mu) \) es la distribución prior discreta para \(\mu\) con probabilidades \(0.1, 0.15, 0.25, 0.25, 0.15, 0.1\), y
-- \( f(\mathbf{y}|\mu) \) es la función de verosimilitud calculada a partir de los datos de caída de lluvia observados.
+- $g(\mu)$ es la distribución prior discreta para \(\mu\) con probabilidades \(0.1, 0.15, 0.25, 0.25, 0.15, 0.1\), y
+- $f(\mathbf{y}|\mu)$ es la función de verosimilitud calculada a partir de los datos de caída de lluvia observados.
 
 En este caso, podemos calcular las probabilidades posteriores para \(\mu\) para cada uno de los valores posibles utilizando las probabilidades de la prior y la función de verosimilitud.
 
@@ -604,7 +604,7 @@ sum(posterior[80:200])
 ```
 
 
-7. *Problema de Behrens-Fisher*. Supongan que se observan dos muestras normales independientes, la primera se distribuye de acuerdo a una $N(µ_1 , σ_1^2)$ y la segunda de acuerdo a $N(µ_2 , σ_2^2)$ . Denoten la primera muestra por $x_1 , . . . , x_m$ y la segunda muestra por $y_1 . . . , y_n$
+7. *Problema de Behrens-Fisher*. Supongan que se observan dos muestras normales independientes, la primera se distribuye de acuerdo a una $N(µ_1 , σ_1^2)$ y la segunda de acuerdo a $N(µ_2 , σ_2^2)$ . Denoten la primera muestra por $x_1 , . . . , x_m$ y la segunda muestra por $y_1 . . . , y_n$
 
 Supongan también que los parámetros $θ = (µ_1 , σ_1^2 , µ_2 , σ_2^2 )$ tienen la distribución inicial vaga
 dada por:
@@ -616,13 +616,13 @@ a. Encontrar la densidad posterior. Mostrar que los vectores $(µ_1 , σ_1^2 )$ 
 La verosimilitud \(f(X|\mu_1, \sigma_1^2)\) y \(f(X|\mu_2, \sigma_2^2)\) de las funciones normales está dada por:
 
 
-\[
+$$
 f(X|\mu_1, \sigma_1^2) = \frac{1}{(2\pi\sigma_1^2)^{m/2}} \exp\left(-\frac{1}{2\sigma_1^2} \sum_{i=1}^{m} (x_i - \mu_1)^2\right)
-\]
+$$
 y
-\[
+$$
 f(X|\mu_2, \sigma_2^2) = \frac{1}{(2\pi\sigma_2^2)^{n/2}} \exp\left(-\frac{1}{2\sigma_2^2} \sum_{i=1}^{n} (x_i - \mu_2)^2\right)
-\]
+$$
 
 Entonces la densidad posterior está dada por el producto de las verosimilitudes por la distribución inicial:
 
