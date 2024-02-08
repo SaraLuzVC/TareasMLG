@@ -1,0 +1,96 @@
+---
+title: "Ejercicios"
+author: "Sara Luz"
+format: html
+editor: visual
+---
+
+## 1.6 Exercises
+
+**1. Movie DVDs owned by students**
+
+The variable Dvds in the student dataset contains the number of movie DVDs owned by students in the class.
+
+a) Construct a histogram of this variable using the hist command.
+
+b) Summarize this variable using the summary command.
+
+c) Use the table command to construct a frequency table of the individual values of Dvds that were observed. If one constructs a barplot of these tabled values using the command
+barplot(table(Dvds))
+one will see that particular response values are very popular. Is there
+any explanation for these popular values for the number of DVDs
+owned?
+
+**2. Student heights**
+
+The variable Height contains the height (in inches) of each student in the
+class.
+a) Construct parallel boxplots of the heights using the Gender variable.
+b) If one assigns the boxplot output to a variable
+output=boxplot(Height~Gender)
+then output is a list that contains statistics used in constructing the
+boxplots. Print output to see the statistics that are stored.
+c) On average, how much taller are male students than female students?
+
+**3. Sleeping times**
+
+The variables ToSleep and WakeUp contain, respectively, the time to bed
+and wake-up time for each student the previous evening. (The data are
+recorded as hours past midnight, so a value of −2 indicates 10 p.m.)
+a) Construct a scatterplot of ToSleep and WakeUp.
+b) Find a least-squares ﬁt to these data using the lm command.
+c) Place the least-squares ﬁt on the scatterplot using the abline com-
+mand.
+d) Use the line to predict the wake-up time for a student who went to
+bed at midnight.
+
+**4. Performance of the traditional conﬁdence interval for a proportion**
+
+Suppose one observes y that is binomially distributed with sample size n
+and probability of success p. The standard 90% conﬁdence interval for p
+is given by
+
+
+
+
+p̂(1 − p̂)
+p̂(1 − p̂)
+, p̂ + 1.645
+) ,
+C(y) = (p̂ − 1.645
+n
+n
+where p̂ = y/n. We use this procedure under the assumption that
+P (p ∈ C(y)) = 0.90 for all 0 < p < 1.
+The function binomial.conf.interval will return the limits of a 90%
+conﬁdence interval given values of y and n.
+binomial.conf.interval=function(y,n)
+{
+z=qnorm(.95)
+phat=y/n
+se=sqrt(phat*(1-phat)/n)
+return(c(phat-z*se,phat+z*se))
+}
+a) Read the function binomial.conf.interval into R.
+b) Suppose that samples of size n = 20 are taken and the true value
+of the proportion is p = .5. Using the rbinom command, simulate
+a value of y and use binomial.conf.interval to compute the 90%
+conﬁdence interval. Repeat this a total of 20 times, and estimate the
+true probability of coverage P (p ∈ C(y)).
+c) Suppose that n = 20 and the true value of the proportion is p = .05.
+Simulate 20 binomial random variates with n = 20 and p = .05, and
+for each simulated y compute a 90% conﬁdence interval. Estimate the
+true probability of coverage.
+
+**5. Performance of the traditional conﬁdence interval for a proportion**
+
+Exercise 4 demonstrated that the actual probability of coverage of the
+traditional conﬁdence interval depends on the values of n and p. Construct
+a Monte Carlo study that investigates how the probability of coverage
+depends on the sample size and true proportion value. In the study, let n
+be 10, 25, and 100 and let p be .05, .25, and .50. Write an R function that
+has three inputs, n, p, and the number of Monte Carlo simulations m, and
+will output the estimate of the exact coverage probability. Implement your
+function using each combination of n and p and m = 1000 simulations.
+Describe how the actual probability of coverage of the traditional interval
+depends on the sample size and true proportion value.
