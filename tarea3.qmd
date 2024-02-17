@@ -20,12 +20,147 @@ $$\int_0^{\pi/3}\text{sin}(t)dt$$
  
  2. Escribir una función para calcular el estimador de Monte Carlo de la función de distribución $\mathcal{Be}(3,3)$ y usar la función para estimar $F(x)$ para $x = 0.1,...,0.9$. Comparar los estimados con los valores obtenidos con la función *pbeta* de *R*.
  
- 3. Usar integración Montse Carlo para estimar:
+ 3. Usar integración Monte Carlo para estimar:
  $$\int_0^1\frac{e^{-x}}{1+x^2}dx$$
- y calcular el tamaño de muestra  necesario para obtener un error de estimación máximo de $\pm 0.001$.
  
+```{r}
+
+getMCArea <- function(f,xinf,xsup,n){
+
+    # Generamos n puntos aleatorios 
+    x <- runif(n, xinf, xsup) # [0, 1]
+    y <- runif(n, 0, max(f(x)))  # [0, max(f)]
+
+    # Calculamos los puntos que caen debajo de la curva y en ella
+    points_in_curve <- sum(y <= f(x))
+
+    # Calculamos la proporción de puntos dentro de la curva respecto al total de puntos lanzados
+    proportion <- points_in_curve / n
+
+    # Calculamos el área total del rectángulo que cubre la función f de integración
+    total_area <- (xsup - xinf) * max(f(x))
+
+    # Multiplicamos la proporción de puntos debajo de la curva por el área total del rectángulo
+    integral_estimate <- proportion * total_area
+
+    return(integral_estimate) 
+} 
+
+```
+
+```{r}
+
+# Definimos la función a integrar
+f <- function(x) {
+  exp(-x) / (1 + x^2)
+}
+
+#número máximo de puntos aleatorois para el cálculo
+n <- 1000000
+
+#limites
+xinf = 0
+xsup=1
+
+# Resultado
+integral_estimate <- getMCArea(f,xinf,xsup,n)
+cat("Estimación de la integral de f(x) mediante el método de Monte Carlo:", integral_estimate, "\n")
+
+
+```
+
+ calcular el tamaño de muestra  necesario para obtener un error de estimación máximo de $\pm 0.001$.
+
+ ```{r}
+ 
+# Calculamos el valor exacto de la integral
+exact_integral <- integrate(f, 0, 1)$value;
+
+# Definimos el error de estimación máximo
+max_error <- 0.001;
+
+# Inicializar el tamaño de muestra
+n <- 0;
+current_error <- 1;
+
+while (current_error > max_error) {
+  n <- n + 1;
+  curr_area <- getMCArea(f,xinf,xsup,n)
+  current_error <- abs( curr_area - exact_integral);
+  
+}
+
+cat("Tamaño de muestra necesario para alcanzar el error máximo de +-0.001$ = ", n, ",con área = ", curr_area)
+
+ 
+ ```
+
  4. Sea $\hat\theta_{IS}$ el estimador  de importancia de $\theta=\int g(x)dx$, donde la función de mportancia $f$ es una densidad. Probar que si $g(x)/f(x)$ es acotada, entonces la varianza del estimador de muestreo por importancia $\hat\sigma_{IS}$ es infinita.
+   #### Demostración Analítica:
+
+Recordando la definición de la varianza del estimador de muestreo por importancia:
+
+-   $\hat{\sigma}_{IS}^2 = \text{Var}(\hat{\theta}{IS}) = E[(\hat{\theta}_{IS} - \theta)^2]$
+
+Donde:
+
+-   $\hat{\theta}_{IS}$ es el estimador de importancia de $\theta.$
+
+-   $\theta$ es el valor verdadero que estamos tratando de estimar (en este caso, $\int g(x)$). $E[\cdot]$ es el valor esperado.
+
+Ahora definamos $W(x) = \frac{g(x)}{f(x)}$. Podemos, entonces, definir el estimador de importancia $\hat{\theta}_{IS}$ *como:* $\hat{\theta}_{IS}$ = $\int W(x) f(x) dx$
+
+Para demostrar que la varianza del estimador de muestreo por importancia $\hat{\theta}_{IS}$ es finita, mostraremos que $E[\hat{\theta}_{IS}]$ y $E[\hat{\theta}_{IS}^2]$ son finitos.
+
+1.  Finitud de $E[\hat{\theta}_{IS}]$:
+    -   $E[\hat{\theta}_{IS}]$ = $E[\int W(x) f(x) dx]$ = $\int E[W(x)] f(x) dx ]$
+
+Dado que $\frac{g(x)}{f(x)}$ está acotada, $W(x)$ es una función acotada y, por lo tanto, $E[W(x)]$ es finito. Por lo tanto, la integral anterior es finita, lo que implica que $E[\hat{\theta}_{IS}]$ es finito.
+
+2.  Finitud de $E[\hat{\theta}_{IS}^2]$:
+    -   $E[\hat{\theta}_{IS}^2]$ = $E[(\int W(x) f(x) dx)^2]$ = $\iint W(x_1)W(x_2) f(x_1)f(x_2) dx_1dx_2$
+
+Dado que $\frac{g(x)}{f(x)}$ está acotada, $W(x)$ es una función acotada, y por lo tanto $W(x_1)W(x_2)$ es acotada para todos los $x_1$ y $x_2$. Por lo tanto, la integral anterior es finita, lo que implica que $E[\hat{\theta}_{IS}^2]$ es finito.
+
+Dado que tanto $E[\hat{\theta}_{IS}]$ como $E[\hat{\theta}_{IS}^2]$ son finitos, la varianza $\hat{\sigma}_{IS}^2$ también es finita.
+
+#### Implementación en R:
+
+Vamos a generar funciones $f(x)$ y $g(x)$ arbitrarias que estén acotadas, y luego realizaremos una simulación para calcular la varianza del estimador.
+ ```{r}
  
+# Función f(x) (densidad de importancia) - podemos usar una distribución uniforme
+f <- function(x) {
+  return(dunif(x, min = 0, max = 1))  # Distribución uniforme entre 0 y 1
+}
+
+# Función g(x) - podemos usar una función acotada arbitraria
+g <- function(x) {
+  return(x^2)  # Por ejemplo, una función cuadrática acotada en [0, 1]
+}
+
+# Número de muestras
+N <- 10000
+
+# Generar muestras utilizando la densidad de importancia f(x)
+samples <- runif(N, min = 0, max = 1)
+
+# Calcular el estimador de importancia theta_IS
+theta_IS <- mean(g(samples))
+
+# Calcular la varianza del estimador
+variance <- var(g(samples))
+
+# Verificar si la varianza es finita
+if (is.finite(variance)) {
+  print("La varianza del estimador de muestreo por importancia es finita.")
+} else {
+  print("La varianza del estimador de muestreo por importancia no es finita.")
+}
+
+
+ ``` 
+
  5. Enconrar dos funciones de importancia $f_1$ y $f_2$ que tengan soporte en $(1,\infty)$ y estén 'cerca' de:
 $$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x>1$$
 
