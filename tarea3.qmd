@@ -14,15 +14,14 @@ library(patchwork)
 library(kableExtra)
 ```
 
-1. Calcular el estimador de Monte Carlo de la integral
-$$\int_0^{\pi/3}\text{sin}(t)dt$$
- y comparar el estimador con el valor exacto de la integral.
- 
- 2. Escribir una función para calcular el estimador de Monte Carlo de la función de distribución $\mathcal{Be}(3,3)$ y usar la función para estimar $F(x)$ para $x = 0.1,...,0.9$. Comparar los estimados con los valores obtenidos con la función *pbeta* de *R*.
- 
- 3. Usar integración Monte Carlo para estimar:
- $$\int_0^1\frac{e^{-x}}{1+x^2}dx$$
- 
+1.  Calcular el estimador de Monte Carlo de la integral $$\int_0^{\pi/3}\text{sin}(t)dt$$ y comparar el estimador con el valor exacto de la integral.
+
+2.  Escribir una función para calcular el estimador de Monte Carlo de la función de distribución $\mathcal{Be}(3,3)$ y usar la función para estimar $F(x)$ para $x = 0.1,...,0.9$. Comparar los estimados con los valores obtenidos con la función *pbeta* de *R*.
+
+\newpage
+
+## 3. Usar integración Monte Carlo para estimar: $$\int_0^1\frac{e^{-x}}{1+x^2}dx$$
+
 ```{r}
 
 getMCArea <- function(f,xinf,xsup,n){
@@ -34,13 +33,15 @@ getMCArea <- function(f,xinf,xsup,n){
     # Calculamos los puntos que caen debajo de la curva y en ella
     points_in_curve <- sum(y <= f(x))
 
-    # Calculamos la proporción de puntos dentro de la curva respecto al total de puntos lanzados
+    # Calculamos la proporción de puntos dentro de la curva respecto al 
+    # total de puntos lanzados
     proportion <- points_in_curve / n
 
     # Calculamos el área total del rectángulo que cubre la función f de integración
     total_area <- (xsup - xinf) * max(f(x))
 
-    # Multiplicamos la proporción de puntos debajo de la curva por el área total del rectángulo
+    # Multiplicamos la proporción de puntos debajo de la curva 
+    #por el área total del rectángulo
     integral_estimate <- proportion * total_area
 
     return(integral_estimate) 
@@ -64,14 +65,14 @@ xsup=1
 
 # Resultado
 integral_estimate <- getMCArea(f,xinf,xsup,n)
-cat("Estimación de la integral de f(x) mediante el método de Monte Carlo:", integral_estimate, "\n")
+cat("Estimación de la integral de f(x) mediante el MC:", integral_estimate, "\n")
 
 
 ```
 
- calcular el tamaño de muestra  necesario para obtener un error de estimación máximo de $\pm 0.001$.
+calcular el tamaño de muestra necesario para obtener un error de estimación máximo de $\pm 0.001$.
 
- ```{r}
+```{r}
  
 # Calculamos el valor exacto de la integral
 exact_integral <- integrate(f, 0, 1)$value;
@@ -90,13 +91,17 @@ while (current_error > max_error) {
   
 }
 
-cat("Tamaño de muestra necesario para alcanzar el error máximo de +-0.001$ = ", n, ",con área = ", curr_area)
+cat("Tamaño de muestra necesario con max error de +-0.001$ = "
+    , n, ",con área = ", curr_area)
 
  
- ```
+```
 
- 4. Sea $\hat\theta_{IS}$ el estimador  de importancia de $\theta=\int g(x)dx$, donde la función de mportancia $f$ es una densidad. Probar que si $g(x)/f(x)$ es acotada, entonces la varianza del estimador de muestreo por importancia $\hat\sigma_{IS}$ es infinita.
-   #### Demostración Analítica:
+\newpage
+
+## 4. Sea $\hat\theta_{IS}$ el estimador de importancia de $\theta=\int g(x)dx$, donde la función de mportancia $f$ es una densidad. Probar que si $g(x)/f(x)$ es acotada, entonces la varianza del estimador de muestreo por importancia $\hat\sigma_{IS}$ es infinita.
+
+#### Demostración Analítica:
 
 Recordando la definición de la varianza del estimador de muestreo por importancia:
 
@@ -127,7 +132,8 @@ Dado que tanto $E[\hat{\theta}_{IS}]$ como $E[\hat{\theta}_{IS}^2]$ son finitos,
 #### Implementación en R:
 
 Vamos a generar funciones $f(x)$ y $g(x)$ arbitrarias que estén acotadas, y luego realizaremos una simulación para calcular la varianza del estimador.
- ```{r}
+
+```{r}
  
 # Función f(x) (densidad de importancia) - podemos usar una distribución uniforme
 f <- function(x) {
@@ -159,26 +165,23 @@ if (is.finite(variance)) {
 }
 
 
- ``` 
+```
 
- 5. Enconrar dos funciones de importancia $f_1$ y $f_2$ que tengan soporte en $(1,\infty)$ y estén 'cerca' de:
-$$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x>1$$
+## 5. Encontrar dos funciones de importancia $f_1$ y $f_2$ que tengan soporte en $(1,\infty)$ y estén 'cerca' de: $$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x>1$$
 
 ¿Cuál de las dos funciones de importancia debe producir la varianza más pequeña para estimar la integral siguiente por muestreo de importancia?
 
 $$\int_1^\infty\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}$$
- 
- 6. Usar el algoritmo de Metropolis-Hastings para generar variadas aleatorias de una densidad Cauchy estándar. Descarta las primeras 1000 observaciones de la cadena, y comparar los deciles de las observaciones generadas con los deciles de la distribución Cauchy estándar. Recordar que una densidad $\text{Cauchy}(\theta,\eta)$ tiene densidad dada por la siguiente función:
+
+6.  Usar el algoritmo de Metropolis-Hastings para generar variadas aleatorias de una densidad Cauchy estándar. Descarta las primeras 1000 observaciones de la cadena, y comparar los deciles de las observaciones generadas con los deciles de la distribución Cauchy estándar. Recordar que una densidad $\text{Cauchy}(\theta,\eta)$ tiene densidad dada por la siguiente función:
 
 $$f(x)=\frac{1}{\theta\pi\Big(1+\Big[\frac{x-\eta}{\theta}\Big]^2\Big)}, x\in\Re,\theta>0$$
- 
- La densidad Cauchy tiene $\theta=1, \eta=0$, y corresponden a la densidad $t$ con un grado de libertad.
 
-7. Implementar un muestreador de Metropolis de caminata aleatoria para generar muestras de una distribución estándar de Laplace:
-$$f(x)=\frac{1}{2}e^{-|x|}, x\in\Re$$
-Para el incremento, simula una normal estándar. Comparar las cadenas generadas cuando la distribución propuesta tiene diferentes varianzas. Calcular las tasas de aceptación de cada cadena.
+La densidad Cauchy tiene $\theta=1, \eta=0$, y corresponden a la densidad $t$ con un grado de libertad.
 
-8. Desarrollar un algoritmo de Metropolis-Hastings para muestrear de la distribución siguiente:
+7.  Implementar un muestreador de Metropolis de caminata aleatoria para generar muestras de una distribución estándar de Laplace: $$f(x)=\frac{1}{2}e^{-|x|}, x\in\Re$$ Para el incremento, simula una normal estándar. Comparar las cadenas generadas cuando la distribución propuesta tiene diferentes varianzas. Calcular las tasas de aceptación de cada cadena.
+
+8.  Desarrollar un algoritmo de Metropolis-Hastings para muestrear de la distribución siguiente:
 
 ```{r echo=FALSE}
 tabla = tibble(dado = c(1,2,3,4,5,6), probabilidad = c(0.01,0.39,0.11,0.18,0.26,0.05))
@@ -187,10 +190,10 @@ tabla %>% kable() %>% kable_paper(full_width = FALSE)
 
 con la distribución propuesta basada en un dado honesto.
 
-9. La sucesión de Fibonacci 1, 1, 2, 3, 5, 8, 13,... es descrita por recurrencia $f_n=f_{n-1}+f_{n-2}$, para $n\geq 3$ con $f_1=f_2=1$
+9.  La sucesión de Fibonacci 1, 1, 2, 3, 5, 8, 13,... es descrita por recurrencia $f_n=f_{n-1}+f_{n-2}$, para $n\geq 3$ con $f_1=f_2=1$
 
-a. Mostrar que el número de sucesiones binarias de longitud $m$ sin 1's adyacentes es $f_{m+2}$
+<!-- -->
 
-b. Sea $p_{k,m}$ el número de sucesiones binarias de longitud $m$ con exactamente $k$ 1's. Mostrar que
-$$p_{k,m}=\binom{m-k+1}{k}, k=0,1,...,\text{ceiling}(m/2)$$
+a.  Mostrar que el número de sucesiones binarias de longitud $m$ sin 1's adyacentes es $f_{m+2}$
 
+b.  Sea $p_{k,m}$ el número de sucesiones binarias de longitud $m$ con exactamente $k$ 1's. Mostrar que $$p_{k,m}=\binom{m-k+1}{k}, k=0,1,...,\text{ceiling}(m/2)$$
