@@ -374,19 +374,3 @@ adyacentes(rep(0,1000), 100000)
 ```
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-b.  Sea $p_{k,m}$ el número de sucesiones binarias de longitud $m$ con exactamente $k$ 1's. Mostrar que $$p_{k,m}=\binom{m-k+1}{k}, k=0,1,...,\text{ceiling}(m/2)$$
