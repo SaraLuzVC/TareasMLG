@@ -12,6 +12,7 @@ library(ggplot2)
 library(tidyverse)
 library(patchwork)
 library(kableExtra)
+library(VeryLargeIntegers)
 ```
 
 1. Calcular el estimador de Monte Carlo de la integral
@@ -40,8 +41,33 @@ $$f(x)=\frac{1}{\theta\pi\Big(1+\Big[\frac{x-\eta}{\theta}\Big]^2\Big)}, x\in\Re
  La densidad Cauchy tiene $\theta=1, \eta=0$, y corresponden a la densidad $t$ con un grado de libertad.
 
 7. Implementar un muestreador de Metropolis de caminata aleatoria para generar muestras de una distribución estándar de Laplace:
-$$f(x)=\frac{1}{2}e^{-|x|}, x\in\Re$$
+$$f(x)=\frac{1}{2}e^{-|x|}, x\in\mathbb{R}$$
 Para el incremento, simula una normal estándar. Comparar las cadenas generadas cuando la distribución propuesta tiene diferentes varianzas. Calcular las tasas de aceptación de cada cadena.
+
+```{r}
+simula <- function(n){
+	f <- function(x){exp(-abs(x)/2)}
+	x <- NULL
+	x0 <- 3
+	c <- 1/(sqrt(2*pi*16)*(pnorm(8,mean=3,sd=4)-pnorm(1,mean=3,sd=4)))
+	for(i in 0:n){
+	w <- ifelse(i==0,x0,x[i])
+	y <- rnorm(1, mean = w, sd = 1)
+	alfa <- (f(y)*dnorm(w,mean=y,sd=1))/(f(w)*dnorm(y,mean=w,sd=1))
+	x <- append(x,ifelse(runif(1)<alfa,y,w))
+	}
+	return(list(x=x,f=c*f(sort(x))))
+}
+	
+a <- simula(100)
+b <- simula(1000)
+c <- simula(10000)
+par(mfrow = c(2,3))
+plot(a$x,type="l"); plot(b$x,type="l"); plot(c$x,type="l")
+hist(a$x,probability =T); lines(sort(a$x),a$f,col="red")
+hist(b$x,probability =T); lines(sort(b$x),b$f,col="red")
+hist(c$x,probability =T); lines(sort(c$x),c$f,col="red")
+```
 
 8. Desarrollar un algoritmo de Metropolis-Hastings para muestrear de la distribución siguiente:
 
@@ -52,10 +78,174 @@ tabla %>% kable() %>% kable_paper(full_width = FALSE)
 
 con la distribución propuesta basada en un dado honesto.
 
+
+```{r}
+set.seed(123)
+n <- 10000  # Número de iteraciones
+x <- numeric(n) # vector para guardar las n iteraciones
+x[1] <- sample(1:6, 1)  # se generan las n muestras de 1 a 6
+
+# Definir la distribución objetivo
+probabilidades <- c(0.01, 0.39, 0.11, 0.18, 0.26, 0.05) #información del problema
+
+# Metropolis-Hastings
+for (i in 2:n) {
+  current_x <- x[i - 1]  
+  proposed_x <- sample(1:6, 1)  
+  acceptance_ratio <- probabilidades[proposed_x] / probabilidades[current_x]   # Razón de aceptación
+  
+  # Se acepta cuendo la razón de aceptación es menor o igual u (numero aleatorio entre 0 y 1)
+  if (runif(1) <= acceptance_ratio) {
+    x[i] <- proposed_x 
+  } else {
+    x[i] <- current_x  
+  }
+}
+
+warm_up <- 100
+# se desechan las primeras 100 muestras
+datos <- x[(100 + 1):n]
+
+hist(datos, breaks = 6, 
+     xlab = "Dado", ylab = "Frecuencia")
+```
+
 9. La sucesión de Fibonacci 1, 1, 2, 3, 5, 8, 13,... es descrita por recurrencia $f_n=f_{n-1}+f_{n-2}$, para $n\geq 3$ con $f_1=f_2=1$
 
 a. Mostrar que el número de sucesiones binarias de longitud $m$ sin 1's adyacentes es $f_{m+2}$
 
+
+Demostración por inducción:
+Se cumple para m=1
+$$
+f_{m+2}=f_{1+2}=f_{3}=f_{2}+f_{1}=1+1=2\\
+\{0,1\}
+$$
+Suponer que se cumple para m-1
+$$
+f_{m-1+2}=f_{m+1}=f_{m}+f_{m-1}
+$$
+Esto es las combinaciones de 0 y 1, de lomgitud $m-1$ sin unos adyacentes es f_{m+1}
+
+Finalmente tenemos que demostrar que para $m$ se cumple:
+
+$$
+f_{m+2}=f_{m+1}+f_{m}
+$$
+Como sabemos que se cumple para $f_{m+1}$, sabemos que de las las $2^{m-1}$ combinaciones del paso anterior, hubo $2^{m-1}-f_{m+1}$ que tuvieron 1's adyacentes y que no van a dar nuevas combinaciones en el siguiente digito, y sabemos que de las combinaciones aceptadas para $m-1$, $f_{m-1}$ terminan en uno y en el siguiente dígito van a generar $f_{m-1}$ combinaciones que no se acepten, esto es:
+
+$$2^m = f_{m+2} + [2*(2^{m-1}-f_{m+1}) +f_{m-1}]$$
+$$2^m = f_{m+2} + [2^m-2f_{m+1}]+f_{m-1}$$
+$$2^m-2^m = f_{m+2}-2f_{m+1}]+f_{m-1}$$
+$$f_{m+2} = f_{m+1}+f_{m+1}-f_{m-1}$$
+$$f_{m+2} = f_{m+1}+f_{m}+f_{m-1}-f_{m-1}$$
+$$f_{m+2} = f_{m+1}+f_{m}$$
+
+
 b. Sea $p_{k,m}$ el número de sucesiones binarias de longitud $m$ con exactamente $k$ 1's. Mostrar que
+
 $$p_{k,m}=\binom{m-k+1}{k}, k=0,1,...,\text{ceiling}(m/2)$$
+El problema es equivalente a demostrar:
+$$
+\forall n \in \mathbb{Z}: f_n = \sum^{\lfloor \frac{n-1}{2} \rfloor}_{k=0}\binom{n-k-1}{k}
+$$
+Demostración por inducción:
+
+Comprobamos que se cumple para $n=1,2$
+$$
+f_1=1=\binom{0}{0}=\binom{1-0-1}{0}=\sum^{\lfloor \frac{1-1}{2} \rfloor}_{k=0}\binom{1-k-1}{k}
+$$
+$$
+f_2=1+0=\binom{1}{0}=\binom{2-0-1}{0}=\sum^{\lfloor \frac{2-1}{2} \rfloor}_{k=0}\binom{1-k-1}{k}
+$$
+
+si suponemos que $n$ es par, tenemos que suponer que se cumple para $n-1$ y $n$:
+
+$$
+f_{n-1}=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}\\
+f_{n}=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}
+$$
+
+Y demostrar que se cumple para:
+$$
+f_{n+1}=\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}\\
+f_{n+2}=\sum^{\frac{n}{2}}_{k=0}\binom{n-k+1}{k}
+$$
+
+Primero para impares tenemos:
+$$\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}  =\binom{n}{0}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+\binom{n-\frac{n}{2}}{\frac{n}{2}}$$
+$$ =1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+\binom{\frac{n}{2}}{\frac{n}{2}}$$
+$$=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+1$$
+$$=1+\sum^{\frac{n}{2}-1}_{k=1}\Big(\binom{n-k-1}{k}+\binom{n-k-1}{k-1}\Big)+1$$
+$$=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k-1}+1$$
+$$=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-2}_{k=0}\binom{n-k-2}{k-1}+1$$
+$$=\binom{n-2}{0}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-2}_{k=0}\binom{n-k-2}{k-1}+\binom{n-(\frac{n}{2}-1)-2}{\frac{n}{2}-1}$$
+$$=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-2}{k}$$
+$$=f_n+f_{n-1}=f_{n+1}$$
+Y para pares:
+$$\sum^{\frac{n}{2}}_{k=0}\binom{n-k+1}{k}=\binom{n}{0}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k+1}{k}$$
+$$=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k+1}{k}$$
+$$=1+\sum^{\frac{n}{2}}_{k=1}\Big(\binom{n-k}{k}+\binom{n-k}{k-1}\Big)$$
+$$=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k-1}$$
+$$=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}$$
+$$=\binom{n-2}{0}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}$$
+$$=\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}$$
+$$=f_{n+1}+f_n=f_{n+2}$$
+c. Sea $\mu_m$ el número esperado de 1's en una buena sucesión de longitud $m$ bajo la distribución uniforme. Encontrar $\mu_m$ para $m = 10, 100, 1000$
+
+```{r}
+adyacentes <- function(init,n){
+	# init: es la secuencia inicial
+	# n: número de iteraciones a correr en la cadena
+	m <- length(init) # longitud de las secuencias
+	nunos <- 0 # número total de 1's
+	nueva <-c(2,init,2) # identifica las secuencias que se generaron usando 2 como sep
+	for(i in 1:n) {
+		indice <- 1+ sample(1:m,1) # agrego el uno por el separador
+		flip <- !nueva[indice]     # cambia el número
+		if (flip==0){
+			nueva[indice] <- 0
+			nunos <- nunos + sum(nueva)
+			next
+		} else {
+			if(nueva[indice-1] == 1 | nueva[indice+1] == 1){
+				nunos <- nunos + sum(nueva)
+				next
+			} else {
+				nueva[indice] <- 1
+				nunos <- nunos + sum(nueva)}	
+		}
+	}
+	return(nunos/n - 4)
+}
+```
+
+```{r}
+adyacentes(rep(0,10), 100000)
+```
+
+```{r}
+adyacentes(rep(0,100), 100000)
+```
+
+
+```{r}
+adyacentes(rep(0,1000), 100000)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
