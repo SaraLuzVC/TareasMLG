@@ -16,8 +16,75 @@ library(VeryLargeIntegers)
 ```
 
 1.  Calcular el estimador de Monte Carlo de la integral $$\int_0^{\pi/3}\text{sin}(t)dt$$ y comparar el estimador con el valor exacto de la integral.
+```{r}
+pi_tercios = pi/3
+
+getMCArea <- function(f,xinf,xsup,n){
+
+    # Generamos n puntos aleatorios 
+    x <- runif(n, xinf, xsup) # [0, 1]
+    y <- runif(n, 0, max(f(x)))  # [0, max(f)]
+
+    # Calculamos los puntos que caen debajo de la curva y en ella
+    points_in_curve <- sum(y <= f(x))
+
+    # Calculamos la proporción de puntos dentro de la curva respecto al 
+    # total de puntos lanzados
+    proportion <- points_in_curve / n
+
+    # Calculamos el área total del rectángulo que cubre la función f de integración
+    total_area <- (xsup - xinf) * max(f(x))
+
+    # Multiplicamos la proporción de puntos debajo de la curva 
+    #por el área total del rectángulo
+    integral_estimate <- proportion * total_area
+
+    return(integral_estimate) 
+} 
+
+# Definimos la función a integrar
+f_sin <- function(x) {
+  sin(x)
+}
+
+#número máximo de puntos aleatorois para el cálculo
+n <- 100000
+
+#limites
+xinf = 0
+xsup=pi_tercios
+
+# Resultado
+integral_estimate <- getMCArea(f_sin,xinf,xsup,n)
+cat("El valor exacto de la integral es 0.5; 0.1 % diferente al valor estimado: ", integral_estimate, "\n")
+
+```
 
 2.  Escribir una función para calcular el estimador de Monte Carlo de la función de distribución $\mathcal{Be}(3,3)$ y usar la función para estimar $F(x)$ para $x = 0.1,...,0.9$. Comparar los estimados con los valores obtenidos con la función *pbeta* de *R*.
+
+```{r}
+
+# Definir la función para calcular el estimador de Monte Carlo de F(x) para una distribución beta Be(3, 3)
+monte_carlo_estimator <- function(x, n = 100000) {
+  # Generar n números aleatorios que sigan una distribución beta Be(3, 3)
+  random_values <- rbeta(n, 3, 3)
+  # Calcular la fracción de valores generados que son menores o iguales a x
+  monte_carlo_estimate <- mean(random_values <= x)
+  return(monte_carlo_estimate)
+}
+
+# Calcular los estimados de Monte Carlo de F(x) para x = 0.1, 0.2, ..., 0.9
+x_values <- seq(0.1, 0.9, by = 0.1)
+monte_carlo_estimates <- sapply(x_values, monte_carlo_estimator)
+
+# Calcular los valores de referencia de F(x) utilizando la función pbeta de R
+reference_values <- pbeta(x_values, 3, 3)
+
+# Mostrar los resultados
+results <- data.frame(x = x_values, Estimador_MC = monte_carlo_estimates, PBETA = reference_values)
+print(results)
+
+`````
 
 \newpage
 
