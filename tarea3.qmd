@@ -84,7 +84,7 @@ reference_values <- pbeta(x_values, 3, 3)
 results <- data.frame(x = x_values, Estimador_MC = monte_carlo_estimates, PBETA = reference_values)
 print(results)
 
-`````
+```
 
 \newpage
 
@@ -235,17 +235,105 @@ if (is.finite(variance)) {
 
 ```
 
-## 5. Encontrar dos funciones de importancia $f_1$ y $f_2$ que tengan soporte en $(1,\infty)$ y estén 'cerca' de: $$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x>1$$
+5. Encontrar dos funciones de importancia $f_1$ y $f_2$ que tengan soporte en $(1,\infty)$ y estén 'cerca' de: $$g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x>1$$
+
+
+```{r}
+# Definimos la función g(x)
+g <- function(x) {
+  x^2 / sqrt(2*pi) * exp(-x^2 / 2)
+}
+# Definimos la primera función f1(x) como la de densidad de probabilidad de una distribución normal truncada
+# Ajustamos la media y la desviación estándar para truncarla en x > 1
+f1 <- function(x) {
+  dnorm(x, mean = 2, sd = 1)
+}
+# Definimos otra función de importancia f2(x) que será la distribución exponencial con parámetro lambda
+f2 <- function(x) {
+    lambda <- 1  # Podemos ajustar lambda según sea necesario
+  dexp(x, rate = lambda)
+}
+```
 
 ¿Cuál de las dos funciones de importancia debe producir la varianza más pequeña para estimar la integral siguiente por muestreo de importancia?
 
 $$\int_1^\infty\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}$$
 
-6.  Usar el algoritmo de Metropolis-Hastings para generar variadas aleatorias de una densidad Cauchy estándar. Descarta las primeras 1000 observaciones de la cadena, y comparar los deciles de las observaciones generadas con los deciles de la distribución Cauchy estándar. Recordar que una densidad $\text{Cauchy}(\theta,\eta)$ tiene densidad dada por la siguiente función:
+```{r}
+# Definimos la función para calcular la estimación de la integral por muestreo de importancia
+importance_sampling <- function(f, g, n) {
+  # Generar n muestras de la función de importancia f
+  samples <- rgamma(n, shape = 2)  # Generar muestras de una distribución gamma para f2(x)
+  
+  # Calcular los pesos de importancia
+  weights <- g(samples) / f(samples)
+  
+  # Estimar la integral
+  integral_estimate <- mean(weights)
+  
+  return(integral_estimate)
+}
+# Realizamos múltiples simulaciones para estimar la integral utilizando f1(x)
+simulations_f1 <- replicate(1000, importance_sampling(f1, g, 10000))
+# Utilizando f2(x)
+simulations_f2 <- replicate(1000, importance_sampling(f2, g, 10000))
+# Calculamos la varianza de las estimaciones para cada función de importancia
+variance_f1 <- var(simulations_f1)
+variance_f2 <- var(simulations_f2)
+# Resultados
+print(paste("Varianza de las estimaciones utilizando f1(x):", round(variance_f1, 8)))
+print(paste("Varianza de las estimaciones utilizando f2(x):", round(variance_f2, 8)))
+```
+
+Por lo tanto, podemos concluir que las varianzas de las estimaciones son muy pequeñas y difieren por muy poco. Sin embargo, las estimaciones con la función $f_1$ generan menor varianza entre ellas.
+
+
+ 6.  Usar el algoritmo de Metropolis-Hastings para generar variadas aleatorias de una densidad Cauchy estándar. Descarta las primeras 1000 observaciones de la cadena, y comparar los deciles de las observaciones generadas con los deciles de la distribución Cauchy estándar. Recordar que una densidad $\text{Cauchy}(\theta,\eta)$ tiene densidad dada por la siguiente función:
 
 $$f(x)=\frac{1}{\theta\pi\Big(1+\Big[\frac{x-\eta}{\theta}\Big]^2\Big)}, x\in\Re,\theta>0$$
 
 La densidad Cauchy tiene $\theta=1, \eta=0$, y corresponden a la densidad $t$ con un grado de libertad.
+
+```{r}
+# Función de densidad de la distribución Cauchy estándar
+f_cauchy <- function(x) {
+  1 / (pi * (1 + x^2))
+}
+# Función de densidad de la distribución Cauchy(θ, η)
+f_cauchy_param <- function(x, theta, eta) {
+  1 / (theta * pi * (1 + ((x - eta) / theta)^2))
+}
+# Algoritmo de Metropolis-Hastings para generar variables aleatorias de una densidad Cauchy estándar
+metropolis_hastings <- function(n, burn_in = 1000) {
+  observations <- numeric(n + burn_in)
+  x <- 0  # Valor inicial
+  for (i in 1:(n + burn_in)) {
+    # Propuesta de nuevo valor
+    x_new <- x + rnorm(1, 0, 1)
+    # Probabilidad de aceptación
+    alpha <- min(1, f_cauchy(x_new) / f_cauchy(x))
+    # Aceptar o rechazar la propuesta
+    if (runif(1) < alpha) {
+      x <- x_new
+    }
+    observations[i] <- x
+  }
+  # Descartamos las primeras 1,000 observaciones
+  observations <- observations[(burn_in + 1):(n + burn_in)]
+  return(observations)
+}
+# Generamos 10,000 observaciones utilizando el algoritmo de Metropolis-Hastings
+observations <- metropolis_hastings(10000)
+# Calculamos los deciles de las observaciones generadas
+deciles_generated <- quantile(observations, probs = seq(0.1, 0.9, 0.1))
+# Calculamos los deciles de la distribución Cauchy estándar
+deciles_cauchy <- quantile(rt(100000, df = 1), probs = seq(0.1, 0.9, 0.1))
+# Resultados
+print("Deciles de las observaciones generadas:")
+print(deciles_generated)
+print("Deciles de la distribución Cauchy estándar:")
+print(deciles_cauchy)
+```
 
 7. Implementar un muestreador de Metropolis de caminata aleatoria para generar muestras de una distribución estándar de Laplace:
 $$f(x)=\frac{1}{2}e^{-|x|}, x\in\mathbb{R}$$
