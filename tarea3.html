@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.450">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sara, Valeria, Ivan, Alberto">
+
+<title>Tarea3</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="tarea3_files/libs/clipboard/clipboard.min.js"></script>
+<script src="tarea3_files/libs/quarto-html/quarto.js"></script>
+<script src="tarea3_files/libs/quarto-html/popper.min.js"></script>
+<script src="tarea3_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="tarea3_files/libs/quarto-html/anchor.min.js"></script>
+<link href="tarea3_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="tarea3_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="tarea3_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="tarea3_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="tarea3_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+<script src="tarea3_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="tarea3_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Tarea3</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Sara, Valeria, Ivan, Alberto </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="tarea-3." class="level1">
+<h1>Tarea 3.</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(VeryLargeIntegers)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol type="1">
+<li><p>Calcular el estimador de Monte Carlo de la integral <span class="math display">\[\int_0^{\pi/3}\text{sin}(t)dt\]</span> y comparar el estimador con el valor exacto de la integral.</p></li>
+<li><p>Escribir una función para calcular el estimador de Monte Carlo de la función de distribución <span class="math inline">\(\mathcal{Be}(3,3)\)</span> y usar la función para estimar <span class="math inline">\(F(x)\)</span> para <span class="math inline">\(x = 0.1,...,0.9\)</span>. Comparar los estimados con los valores obtenidos con la función <em>pbeta</em> de <em>R</em>.</p></li>
+</ol>
+<div style="page-break-after: always;"></div>
+<section id="usar-integración-monte-carlo-para-estimar-int_01frace-x1x2dx" class="level2">
+<h2 class="anchored" data-anchor-id="usar-integración-monte-carlo-para-estimar-int_01frace-x1x2dx">3. Usar integración Monte Carlo para estimar: <span class="math display">\[\int_0^1\frac{e^{-x}}{1+x^2}dx\]</span></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>getMCArea <span class="ot">&lt;-</span> <span class="cf">function</span>(f,xinf,xsup,n){</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generamos n puntos aleatorios </span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, xinf, xsup) <span class="co"># [0, 1]</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> <span class="fu">runif</span>(n, <span class="dv">0</span>, <span class="fu">max</span>(<span class="fu">f</span>(x)))  <span class="co"># [0, max(f)]</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculamos los puntos que caen debajo de la curva y en ella</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    points_in_curve <span class="ot">&lt;-</span> <span class="fu">sum</span>(y <span class="sc">&lt;=</span> <span class="fu">f</span>(x))</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculamos la proporción de puntos dentro de la curva respecto al </span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># total de puntos lanzados</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    proportion <span class="ot">&lt;-</span> points_in_curve <span class="sc">/</span> n</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculamos el área total del rectángulo que cubre la función f de integración</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    total_area <span class="ot">&lt;-</span> (xsup <span class="sc">-</span> xinf) <span class="sc">*</span> <span class="fu">max</span>(<span class="fu">f</span>(x))</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Multiplicamos la proporción de puntos debajo de la curva </span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">#por el área total del rectángulo</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    integral_estimate <span class="ot">&lt;-</span> proportion <span class="sc">*</span> total_area</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(integral_estimate) </span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>} </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Definimos la función a integrar</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">exp</span>(<span class="sc">-</span>x) <span class="sc">/</span> (<span class="dv">1</span> <span class="sc">+</span> x<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#número máximo de puntos aleatorois para el cálculo</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">1000000</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co">#limites</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>xinf <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>xsup<span class="ot">=</span><span class="dv">1</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Resultado</span></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>integral_estimate <span class="ot">&lt;-</span> <span class="fu">getMCArea</span>(f,xinf,xsup,n)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Estimación de la integral de f(x) mediante el MC:"</span>, integral_estimate, <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Estimación de la integral de f(x) mediante el MC: 0.5250368 </code></pre>
+</div>
+</div>
+<p>calcular el tamaño de muestra necesario para obtener un error de estimación máximo de <span class="math inline">\(\pm 0.001\)</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculamos el valor exacto de la integral</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>exact_integral <span class="ot">&lt;-</span> <span class="fu">integrate</span>(f, <span class="dv">0</span>, <span class="dv">1</span>)<span class="sc">$</span>value;</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Definimos el error de estimación máximo</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>max_error <span class="ot">&lt;-</span> <span class="fl">0.001</span>;</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Inicializar el tamaño de muestra</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">0</span>;</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>current_error <span class="ot">&lt;-</span> <span class="dv">1</span>;</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="cf">while</span> (current_error <span class="sc">&gt;</span> max_error) {</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> n <span class="sc">+</span> <span class="dv">1</span>;</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  curr_area <span class="ot">&lt;-</span> <span class="fu">getMCArea</span>(f,xinf,xsup,n)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  current_error <span class="ot">&lt;-</span> <span class="fu">abs</span>( curr_area <span class="sc">-</span> exact_integral);</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Tamaño de muestra necesario con max error de +-0.001$ = "</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    , n, <span class="st">",con área = "</span>, curr_area)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Tamaño de muestra necesario con max error de +-0.001$ =  49 ,con área =  0.5257509</code></pre>
+</div>
+</div>
+<div style="page-break-after: always;"></div>
+</section>
+<section id="sea-hattheta_is-el-estimador-de-importancia-de-thetaint-gxdx-donde-la-función-de-mportancia-f-es-una-densidad.-probar-que-si-gxfx-es-acotada-entonces-la-varianza-del-estimador-de-muestreo-por-importancia-hatsigma_is-es-infinita." class="level2">
+<h2 class="anchored" data-anchor-id="sea-hattheta_is-el-estimador-de-importancia-de-thetaint-gxdx-donde-la-función-de-mportancia-f-es-una-densidad.-probar-que-si-gxfx-es-acotada-entonces-la-varianza-del-estimador-de-muestreo-por-importancia-hatsigma_is-es-infinita.">4. Sea <span class="math inline">\(\hat\theta_{IS}\)</span> el estimador de importancia de <span class="math inline">\(\theta=\int g(x)dx\)</span>, donde la función de mportancia <span class="math inline">\(f\)</span> es una densidad. Probar que si <span class="math inline">\(g(x)/f(x)\)</span> es acotada, entonces la varianza del estimador de muestreo por importancia <span class="math inline">\(\hat\sigma_{IS}\)</span> es infinita.</h2>
+<section id="demostración-analítica" class="level4">
+<h4 class="anchored" data-anchor-id="demostración-analítica">Demostración Analítica:</h4>
+<p>Recordando la definición de la varianza del estimador de muestreo por importancia:</p>
+<ul>
+<li><span class="math inline">\(\hat{\sigma}_{IS}^2 = \text{Var}(\hat{\theta}{IS}) = E[(\hat{\theta}_{IS} - \theta)^2]\)</span></li>
+</ul>
+<p>Donde:</p>
+<ul>
+<li><p><span class="math inline">\(\hat{\theta}_{IS}\)</span> es el estimador de importancia de <span class="math inline">\(\theta.\)</span></p></li>
+<li><p><span class="math inline">\(\theta\)</span> es el valor verdadero que estamos tratando de estimar (en este caso, <span class="math inline">\(\int g(x)\)</span>). <span class="math inline">\(E[\cdot]\)</span> es el valor esperado.</p></li>
+</ul>
+<p>Ahora definamos <span class="math inline">\(W(x) = \frac{g(x)}{f(x)}\)</span>. Podemos, entonces, definir el estimador de importancia <span class="math inline">\(\hat{\theta}_{IS}\)</span> <em>como:</em> <span class="math inline">\(\hat{\theta}_{IS}\)</span> = <span class="math inline">\(\int W(x) f(x) dx\)</span></p>
+<p>Para demostrar que la varianza del estimador de muestreo por importancia <span class="math inline">\(\hat{\theta}_{IS}\)</span> es finita, mostraremos que <span class="math inline">\(E[\hat{\theta}_{IS}]\)</span> y <span class="math inline">\(E[\hat{\theta}_{IS}^2]\)</span> son finitos.</p>
+<ol type="1">
+<li>Finitud de <span class="math inline">\(E[\hat{\theta}_{IS}]\)</span>:
+<ul>
+<li><span class="math inline">\(E[\hat{\theta}_{IS}]\)</span> = <span class="math inline">\(E[\int W(x) f(x) dx]\)</span> = <span class="math inline">\(\int E[W(x)] f(x) dx ]\)</span></li>
+</ul></li>
+</ol>
+<p>Dado que <span class="math inline">\(\frac{g(x)}{f(x)}\)</span> está acotada, <span class="math inline">\(W(x)\)</span> es una función acotada y, por lo tanto, <span class="math inline">\(E[W(x)]\)</span> es finito. Por lo tanto, la integral anterior es finita, lo que implica que <span class="math inline">\(E[\hat{\theta}_{IS}]\)</span> es finito.</p>
+<ol start="2" type="1">
+<li>Finitud de <span class="math inline">\(E[\hat{\theta}_{IS}^2]\)</span>:
+<ul>
+<li><span class="math inline">\(E[\hat{\theta}_{IS}^2]\)</span> = <span class="math inline">\(E[(\int W(x) f(x) dx)^2]\)</span> = <span class="math inline">\(\iint W(x_1)W(x_2) f(x_1)f(x_2) dx_1dx_2\)</span></li>
+</ul></li>
+</ol>
+<p>Dado que <span class="math inline">\(\frac{g(x)}{f(x)}\)</span> está acotada, <span class="math inline">\(W(x)\)</span> es una función acotada, y por lo tanto <span class="math inline">\(W(x_1)W(x_2)\)</span> es acotada para todos los <span class="math inline">\(x_1\)</span> y <span class="math inline">\(x_2\)</span>. Por lo tanto, la integral anterior es finita, lo que implica que <span class="math inline">\(E[\hat{\theta}_{IS}^2]\)</span> es finito.</p>
+<p>Dado que tanto <span class="math inline">\(E[\hat{\theta}_{IS}]\)</span> como <span class="math inline">\(E[\hat{\theta}_{IS}^2]\)</span> son finitos, la varianza <span class="math inline">\(\hat{\sigma}_{IS}^2\)</span> también es finita.</p>
+</section>
+<section id="implementación-en-r" class="level4">
+<h4 class="anchored" data-anchor-id="implementación-en-r">Implementación en R:</h4>
+<p>Vamos a generar funciones <span class="math inline">\(f(x)\)</span> y <span class="math inline">\(g(x)\)</span> arbitrarias que estén acotadas, y luego realizaremos una simulación para calcular la varianza del estimador.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Función f(x) (densidad de importancia) - podemos usar una distribución uniforme</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">dunif</span>(x, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">1</span>))  <span class="co"># Distribución uniforme entre 0 y 1</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Función g(x) - podemos usar una función acotada arbitraria</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x<span class="sc">^</span><span class="dv">2</span>)  <span class="co"># Por ejemplo, una función cuadrática acotada en [0, 1]</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Número de muestras</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">10000</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Generar muestras utilizando la densidad de importancia f(x)</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>samples <span class="ot">&lt;-</span> <span class="fu">runif</span>(N, <span class="at">min =</span> <span class="dv">0</span>, <span class="at">max =</span> <span class="dv">1</span>)</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcular el estimador de importancia theta_IS</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>theta_IS <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">g</span>(samples))</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Calcular la varianza del estimador</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>variance <span class="ot">&lt;-</span> <span class="fu">var</span>(<span class="fu">g</span>(samples))</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar si la varianza es finita</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">is.finite</span>(variance)) {</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"La varianza del estimador de muestreo por importancia es finita."</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"La varianza del estimador de muestreo por importancia no es finita."</span>)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "La varianza del estimador de muestreo por importancia es finita."</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="encontrar-dos-funciones-de-importancia-f_1-y-f_2-que-tengan-soporte-en-1infty-y-estén-cerca-de-gxfracx2sqrt2piex22-x1" class="level2">
+<h2 class="anchored" data-anchor-id="encontrar-dos-funciones-de-importancia-f_1-y-f_2-que-tengan-soporte-en-1infty-y-estén-cerca-de-gxfracx2sqrt2piex22-x1">5. Encontrar dos funciones de importancia <span class="math inline">\(f_1\)</span> y <span class="math inline">\(f_2\)</span> que tengan soporte en <span class="math inline">\((1,\infty)\)</span> y estén ‘cerca’ de: <span class="math display">\[g(x)=\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}, x&gt;1\]</span></h2>
+<p>¿Cuál de las dos funciones de importancia debe producir la varianza más pequeña para estimar la integral siguiente por muestreo de importancia?</p>
+<p><span class="math display">\[\int_1^\infty\frac{x^2}{\sqrt{2\pi}}e^{x^2/2}\]</span></p>
+<ol start="6" type="1">
+<li>Usar el algoritmo de Metropolis-Hastings para generar variadas aleatorias de una densidad Cauchy estándar. Descarta las primeras 1000 observaciones de la cadena, y comparar los deciles de las observaciones generadas con los deciles de la distribución Cauchy estándar. Recordar que una densidad <span class="math inline">\(\text{Cauchy}(\theta,\eta)\)</span> tiene densidad dada por la siguiente función:</li>
+</ol>
+<p><span class="math display">\[f(x)=\frac{1}{\theta\pi\Big(1+\Big[\frac{x-\eta}{\theta}\Big]^2\Big)}, x\in\Re,\theta&gt;0\]</span></p>
+<p>La densidad Cauchy tiene <span class="math inline">\(\theta=1, \eta=0\)</span>, y corresponden a la densidad <span class="math inline">\(t\)</span> con un grado de libertad.</p>
+<ol start="7" type="1">
+<li>Implementar un muestreador de Metropolis de caminata aleatoria para generar muestras de una distribución estándar de Laplace: <span class="math display">\[f(x)=\frac{1}{2}e^{-|x|}, x\in\mathbb{R}\]</span> Para el incremento, simula una normal estándar. Comparar las cadenas generadas cuando la distribución propuesta tiene diferentes varianzas. Calcular las tasas de aceptación de cada cadena.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>simula <span class="ot">&lt;-</span> <span class="cf">function</span>(n){</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    f <span class="ot">&lt;-</span> <span class="cf">function</span>(x){<span class="fu">exp</span>(<span class="sc">-</span><span class="fu">abs</span>(x)<span class="sc">/</span><span class="dv">2</span>)}</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    x0 <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    c <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">/</span>(<span class="fu">sqrt</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span><span class="dv">16</span>)<span class="sc">*</span>(<span class="fu">pnorm</span>(<span class="dv">8</span>,<span class="at">mean=</span><span class="dv">3</span>,<span class="at">sd=</span><span class="dv">4</span>)<span class="sc">-</span><span class="fu">pnorm</span>(<span class="dv">1</span>,<span class="at">mean=</span><span class="dv">3</span>,<span class="at">sd=</span><span class="dv">4</span>)))</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">0</span><span class="sc">:</span>n){</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    w <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(i<span class="sc">==</span><span class="dv">0</span>,x0,x[i])</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    y <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> w, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    alfa <span class="ot">&lt;-</span> (<span class="fu">f</span>(y)<span class="sc">*</span><span class="fu">dnorm</span>(w,<span class="at">mean=</span>y,<span class="at">sd=</span><span class="dv">1</span>))<span class="sc">/</span>(<span class="fu">f</span>(w)<span class="sc">*</span><span class="fu">dnorm</span>(y,<span class="at">mean=</span>w,<span class="at">sd=</span><span class="dv">1</span>))</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">append</span>(x,<span class="fu">ifelse</span>(<span class="fu">runif</span>(<span class="dv">1</span>)<span class="sc">&lt;</span>alfa,y,w))</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">x=</span>x,<span class="at">f=</span>c<span class="sc">*</span><span class="fu">f</span>(<span class="fu">sort</span>(x))))</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="fu">simula</span>(<span class="dv">100</span>)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="fu">simula</span>(<span class="dv">1000</span>)</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>c <span class="ot">&lt;-</span> <span class="fu">simula</span>(<span class="dv">10000</span>)</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(a<span class="sc">$</span>x,<span class="at">type=</span><span class="st">"l"</span>); <span class="fu">plot</span>(b<span class="sc">$</span>x,<span class="at">type=</span><span class="st">"l"</span>); <span class="fu">plot</span>(c<span class="sc">$</span>x,<span class="at">type=</span><span class="st">"l"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(a<span class="sc">$</span>x,<span class="at">probability =</span>T); <span class="fu">lines</span>(<span class="fu">sort</span>(a<span class="sc">$</span>x),a<span class="sc">$</span>f,<span class="at">col=</span><span class="st">"red"</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(b<span class="sc">$</span>x,<span class="at">probability =</span>T); <span class="fu">lines</span>(<span class="fu">sort</span>(b<span class="sc">$</span>x),b<span class="sc">$</span>f,<span class="at">col=</span><span class="st">"red"</span>)</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(c<span class="sc">$</span>x,<span class="at">probability =</span>T); <span class="fu">lines</span>(<span class="fu">sort</span>(c<span class="sc">$</span>x),c<span class="sc">$</span>f,<span class="at">col=</span><span class="st">"red"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="tarea3_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ol start="8" type="1">
+<li>Desarrollar un algoritmo de Metropolis-Hastings para muestrear de la distribución siguiente:</li>
+</ol>
+<div class="cell">
+<div class="cell-output-display">
+<table class="lightable-paper table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">dado</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">probabilidad</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.01</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.39</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.11</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.18</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0.26</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+<p>con la distribución propuesta basada en un dado honesto.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">10000</span>  <span class="co"># Número de iteraciones</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">numeric</span>(n) <span class="co"># vector para guardar las n iteraciones</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>x[<span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span>)  <span class="co"># se generan las n muestras de 1 a 6</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Definir la distribución objetivo</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>probabilidades <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fl">0.01</span>, <span class="fl">0.39</span>, <span class="fl">0.11</span>, <span class="fl">0.18</span>, <span class="fl">0.26</span>, <span class="fl">0.05</span>) <span class="co">#información del problema</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Metropolis-Hastings</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">2</span><span class="sc">:</span>n) {</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  current_x <span class="ot">&lt;-</span> x[i <span class="sc">-</span> <span class="dv">1</span>]  </span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  proposed_x <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span>)  </span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>  acceptance_ratio <span class="ot">&lt;-</span> probabilidades[proposed_x] <span class="sc">/</span> probabilidades[current_x]   <span class="co"># Razón de aceptación</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Se acepta cuendo la razón de aceptación es menor o igual u (numero aleatorio entre 0 y 1)</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">&lt;=</span> acceptance_ratio) {</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>    x[i] <span class="ot">&lt;-</span> proposed_x </span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    x[i] <span class="ot">&lt;-</span> current_x  </span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>warm_up <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="co"># se desechan las primeras 100 muestras</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>datos <span class="ot">&lt;-</span> x[(<span class="dv">100</span> <span class="sc">+</span> <span class="dv">1</span>)<span class="sc">:</span>n]</span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(datos, <span class="at">breaks =</span> <span class="dv">6</span>, </span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"Dado"</span>, <span class="at">ylab =</span> <span class="st">"Frecuencia"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="tarea3_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ol start="9" type="1">
+<li>La sucesión de Fibonacci 1, 1, 2, 3, 5, 8, 13,… es descrita por recurrencia <span class="math inline">\(f_n=f_{n-1}+f_{n-2}\)</span>, para <span class="math inline">\(n\geq 3\)</span> con <span class="math inline">\(f_1=f_2=1\)</span></li>
+</ol>
+<ol type="a">
+<li>Mostrar que el número de sucesiones binarias de longitud <span class="math inline">\(m\)</span> sin 1’s adyacentes es <span class="math inline">\(f_{m+2}\)</span></li>
+</ol>
+<p>Demostración por inducción: Se cumple para m=1 <span class="math display">\[
+f_{m+2}=f_{1+2}=f_{3}=f_{2}+f_{1}=1+1=2\\
+\{0,1\}
+\]</span> Suponer que se cumple para m-1 <span class="math display">\[
+f_{m-1+2}=f_{m+1}=f_{m}+f_{m-1}
+\]</span> Esto es las combinaciones de 0 y 1, de lomgitud <span class="math inline">\(m-1\)</span> sin unos adyacentes es f_{m+1}</p>
+<p>Finalmente tenemos que demostrar que para <span class="math inline">\(m\)</span> se cumple:</p>
+<p><span class="math display">\[
+f_{m+2}=f_{m+1}+f_{m}
+\]</span> Como sabemos que se cumple para <span class="math inline">\(f_{m+1}\)</span>, sabemos que de las las <span class="math inline">\(2^{m-1}\)</span> combinaciones del paso anterior, hubo <span class="math inline">\(2^{m-1}-f_{m+1}\)</span> que tuvieron 1’s adyacentes y que no van a dar nuevas combinaciones en el siguiente digito, y sabemos que de las combinaciones aceptadas para <span class="math inline">\(m-1\)</span>, <span class="math inline">\(f_{m-1}\)</span> terminan en uno y en el siguiente dígito van a generar <span class="math inline">\(f_{m-1}\)</span> combinaciones que no se acepten, esto es:</p>
+<p><span class="math display">\[2^m = f_{m+2} + [2*(2^{m-1}-f_{m+1}) +f_{m-1}]\]</span> <span class="math display">\[2^m = f_{m+2} + [2^m-2f_{m+1}]+f_{m-1}\]</span> <span class="math display">\[2^m-2^m = f_{m+2}-2f_{m+1}]+f_{m-1}\]</span> <span class="math display">\[f_{m+2} = f_{m+1}+f_{m+1}-f_{m-1}\]</span> <span class="math display">\[f_{m+2} = f_{m+1}+f_{m}+f_{m-1}-f_{m-1}\]</span> <span class="math display">\[f_{m+2} = f_{m+1}+f_{m}\]</span></p>
+<ol start="2" type="a">
+<li>Sea <span class="math inline">\(p_{k,m}\)</span> el número de sucesiones binarias de longitud <span class="math inline">\(m\)</span> con exactamente <span class="math inline">\(k\)</span> 1’s. Mostrar que</li>
+</ol>
+<p><span class="math display">\[p_{k,m}=\binom{m-k+1}{k}, k=0,1,...,\text{ceiling}(m/2)\]</span> El problema es equivalente a demostrar: <span class="math display">\[
+\forall n \in \mathbb{Z}: f_n = \sum^{\lfloor \frac{n-1}{2} \rfloor}_{k=0}\binom{n-k-1}{k}
+\]</span> Demostración por inducción:</p>
+<p>Comprobamos que se cumple para <span class="math inline">\(n=1,2\)</span> <span class="math display">\[
+f_1=1=\binom{0}{0}=\binom{1-0-1}{0}=\sum^{\lfloor \frac{1-1}{2} \rfloor}_{k=0}\binom{1-k-1}{k}
+\]</span> <span class="math display">\[
+f_2=1+0=\binom{1}{0}=\binom{2-0-1}{0}=\sum^{\lfloor \frac{2-1}{2} \rfloor}_{k=0}\binom{1-k-1}{k}
+\]</span></p>
+<p>si suponemos que <span class="math inline">\(n\)</span> es par, tenemos que suponer que se cumple para <span class="math inline">\(n-1\)</span> y <span class="math inline">\(n\)</span>:</p>
+<p><span class="math display">\[
+f_{n-1}=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}\\
+f_{n}=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}
+\]</span></p>
+<p>Y demostrar que se cumple para: <span class="math display">\[
+f_{n+1}=\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}\\
+f_{n+2}=\sum^{\frac{n}{2}}_{k=0}\binom{n-k+1}{k}
+\]</span></p>
+<p>Primero para impares tenemos: <span class="math display">\[\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}  =\binom{n}{0}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+\binom{n-\frac{n}{2}}{\frac{n}{2}}\]</span> <span class="math display">\[ =1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+\binom{\frac{n}{2}}{\frac{n}{2}}\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k}{k}+1\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}-1}_{k=1}\Big(\binom{n-k-1}{k}+\binom{n-k-1}{k-1}\Big)+1\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k-1}+1\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-2}_{k=0}\binom{n-k-2}{k-1}+1\]</span> <span class="math display">\[=\binom{n-2}{0}+\sum^{\frac{n}{2}-1}_{k=1}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-2}_{k=0}\binom{n-k-2}{k-1}+\binom{n-(\frac{n}{2}-1)-2}{\frac{n}{2}-1}\]</span> <span class="math display">\[=\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-2}{k}\]</span> <span class="math display">\[=f_n+f_{n-1}=f_{n+1}\]</span> Y para pares: <span class="math display">\[\sum^{\frac{n}{2}}_{k=0}\binom{n-k+1}{k}=\binom{n}{0}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k+1}{k}\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k+1}{k}\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}}_{k=1}\Big(\binom{n-k}{k}+\binom{n-k}{k-1}\Big)\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k-1}\]</span> <span class="math display">\[=1+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}\]</span> <span class="math display">\[=\binom{n-2}{0}+\sum^{\frac{n}{2}}_{k=1}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}\]</span> <span class="math display">\[=\sum^{\frac{n}{2}}_{k=0}\binom{n-k}{k}+\sum^{\frac{n}{2}-1}_{k=0}\binom{n-k-1}{k}\]</span> <span class="math display">\[=f_{n+1}+f_n=f_{n+2}\]</span> c.&nbsp;Sea <span class="math inline">\(\mu_m\)</span> el número esperado de 1’s en una buena sucesión de longitud <span class="math inline">\(m\)</span> bajo la distribución uniforme. Encontrar <span class="math inline">\(\mu_m\)</span> para <span class="math inline">\(m = 10, 100, 1000\)</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>adyacentes <span class="ot">&lt;-</span> <span class="cf">function</span>(init,n){</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># init: es la secuencia inicial</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># n: número de iteraciones a correr en la cadena</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">length</span>(init) <span class="co"># longitud de las secuencias</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    nunos <span class="ot">&lt;-</span> <span class="dv">0</span> <span class="co"># número total de 1's</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    nueva <span class="ot">&lt;-</span><span class="fu">c</span>(<span class="dv">2</span>,init,<span class="dv">2</span>) <span class="co"># identifica las secuencias que se generaron usando 2 como sep</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n) {</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        indice <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">+</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>m,<span class="dv">1</span>) <span class="co"># agrego el uno por el separador</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        flip <span class="ot">&lt;-</span> <span class="sc">!</span>nueva[indice]     <span class="co"># cambia el número</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (flip<span class="sc">==</span><span class="dv">0</span>){</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>            nueva[indice] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            nunos <span class="ot">&lt;-</span> nunos <span class="sc">+</span> <span class="fu">sum</span>(nueva)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">next</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>        } <span class="cf">else</span> {</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span>(nueva[indice<span class="dv">-1</span>] <span class="sc">==</span> <span class="dv">1</span> <span class="sc">|</span> nueva[indice<span class="sc">+</span><span class="dv">1</span>] <span class="sc">==</span> <span class="dv">1</span>){</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>                nunos <span class="ot">&lt;-</span> nunos <span class="sc">+</span> <span class="fu">sum</span>(nueva)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>                <span class="cf">next</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>            } <span class="cf">else</span> {</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>                nueva[indice] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>                nunos <span class="ot">&lt;-</span> nunos <span class="sc">+</span> <span class="fu">sum</span>(nueva)}    </span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(nunos<span class="sc">/</span>n <span class="sc">-</span> <span class="dv">4</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">adyacentes</span>(<span class="fu">rep</span>(<span class="dv">0</span>,<span class="dv">10</span>), <span class="dv">100000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.91924</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">adyacentes</span>(<span class="fu">rep</span>(<span class="dv">0</span>,<span class="dv">100</span>), <span class="dv">100000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 27.77751</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">adyacentes</span>(<span class="fu">rep</span>(<span class="dv">0</span>,<span class="dv">1000</span>), <span class="dv">100000</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 274.6482</code></pre>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
