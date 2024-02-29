@@ -146,11 +146,24 @@ ejercicio_4 <- function(n, X_dado_Y, Y_dado_X) {
 result <- ejercicio_4(nsim, X_dado_Y, Y_dado_X)
 # X_dado_Y <- result$X_dado_Y
 # Y_dado_X <- result$Y_dado_X
-hist(X_dado_Y, probability = T, main = "X", ylab = "densidad")
-hist(Y_dado_X, probability = T, main = "X", ylab = "densidad")
+
+result<- data.frame(result)
+
+ggplot(result, aes(x=X_dado_Y)) + 
+  geom_histogram(color="black", fill="green")
+#hist(Y_dado_X, probability = T, main = "Y", ylab = "densidad")
 ```
+
 ```{r}
-plot(X_dado_Y[1:nsim], Y_dado_X[1:nsim], cex = 0.5)
+ggplot(result, aes(x=Y_dado_X)) + 
+  geom_histogram(color="black", fill="green")
+```
+
+
+
+
+```{r}
+ ggplot(result, aes(X_dado_Y, Y_dado_X))+ geom_point()+ geom_jitter()
 ```
 
 
