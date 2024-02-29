@@ -52,6 +52,8 @@ $$f (x|y) ∝ ye^{−yx}, 0 < x < B < ∞$$
 $$f (y|x) ∝ xe^{−xy}, 0 < y < B < ∞$$
 
 * Obtener un estimado de la distribución marginal de X cuando B = 10 usando el Gibbs sampler.
+
+
 * Ahora supongan que B = ∞ así que las distribuciones condicionales completas son ahora las ordinarias distribuciones exponenciales no truncadas. Mostrar analíticamente que $f_x(t) = 1/t$ es una solución a la ecuación integral en este caso:
 
 $$f_x(x)=\int\Big[\int f_{x|y}(x|y)f_{y|t}(y|t)dy\Big]f_x(t)dt$$
@@ -69,14 +71,89 @@ donde $a = (a_1, . . ., a_n)$ es un vector de parámetros. Supongan que n = 6 y 
 
 4. Supongan que el vector $(X, Y )$ tiene función de distribución conjunta:
 
-$$f(x,y)=\frac{x^{a+y-1}e^{(1+b)x}b^a}{y!\Gamma(a)}, x>0, y=0,1,2,...$$
+$$f(x,y)=\frac{x^{a+y-1}e^{-(1+b)x}b^a}{y!\Gamma(a)}, x>0, y=0,1,2,...$$
 
 y deseamos simular de la densidad conjunta.
 
 * Mostrar que la densidad condicional $f (x|y)$ es una Gamma e identificar los parámetros.
+
+Primero obtenemos $f(y)$
+
+$$\begin{aligned}
+f(y)&=& \int_0^\infty  \frac{x^{a+y-1}e^{-(1+b)x}b^a}{y!\Gamma(a)} dx\\
+&=&\frac{b^a}{y!\Gamma(a)}\int_0^\infty x^{a+y-1}e^{-(1+b)x}\\
+&=&\frac{b^a}{y!\Gamma(a)}\Big(\frac{\Gamma(a+y)}{(1+b)^{a+y}}\Big)
+\end{aligned}$$
+
+Luego aplicamos la definición de desidad condicional:
+
+$$\begin{aligned}
+f(x|y)&=&\frac{f(x,y)}{f(y)}\\
+&=&\frac{\frac{x^{a+y-1}e^{-(1+b)x}b^a}{y!\Gamma(a)}}{\frac{b^a}{y!\Gamma(a)}\Big(\frac{\Gamma(a+y)}{(1+b)^{a+y}}\Big)}\\
+&=&\frac{x^{a+y-1}e^{-(1+b)x}}{\Gamma(a+y)}(1+b)^{a+y}
+\end{aligned}$$
+Con lo cual podemos ver que se trata de una $\mathcal{G}(a+y,1+b)$
+
 * Mostrar que la densidad condicional $f (y|x)$ es Poisson.
+
+De nuevo obtenemos como primer paso la marginal $f(x)$
+
+$$\begin{aligned}
+f(x)&=&\sum_{y=0}^\infty \frac{x^{a+y-1}e^{-(1+b)x}b^a}{y!\Gamma(a)}\\
+&=&\frac{e^{-(1+b)x}b^a}{\Gamma(a)} \sum_{y=0}^\infty \frac{x^{a+y-1}}{y!}\\
+&=&\frac{e^{-(1+b)x}b^a}{\Gamma(a)} \sum_{y=0}^\infty \frac{x^y x^{a-1}}{y!}\\
+&=&\frac{e^{-(1+b)x}b^a x^{a-1}}{\Gamma(a)} \sum_{y=0}^\infty \frac{x^y}{y!}\\
+&=&\frac{e^{-(1+b)x}b^a x^{a-1}}{\Gamma(a)} e^x
+\end{aligned}$$
+
+Y usamos la definición de densidad condicional:
+
+$$\begin{aligned}
+f(x|y)&=&\frac{f(x,y)}{f(y)}\\
+&=&\frac{\frac{x^{a+y-1}e^{-(1+b)x}b^a}{y!\Gamma(a)}}{\frac{e^{-(1+b)x}b^a x^{a-1}}{\Gamma(a)} e^x}\\
+&=&\frac{x^ye^x}{y!}
+\end{aligned}$$
+
+Con lo cual vemos que es $\mathcal{P}(\lambda=x,k=y)$
+
 * Escriban una función para implementar el Gibbs sampler cuando las constantes son dadas con valores $a = 1$ y $b = 1$.
+
+```{r}
+a <- 1
+b <- 1
+nsim <- 1000
+
+X_dado_Y <- Y_dado_X <- array(0, dim = c(nsim, 1))
+
+X_dado_Y[1] <- rgamma(1, shape = a, rate = 1 + b)
+Y_dado_X[1] <- rpois(1, lambda = X_dado_Y[1])
+
+ejercicio_4 <- function(n, X_dado_Y, Y_dado_X) {
+  for (i in 2:n) {
+    X_dado_Y[i] <- rgamma(1, shape = a + Y_dado_X[i - 1], rate = 1 + b)
+    Y_dado_X[i] <- rpois(1, lambda = X_dado_Y[i])
+  }
+  
+  return(list(X_dado_Y = X_dado_Y, Y_dado_X = Y_dado_X))
+}
+
+```
+
+
 * Con su función, escriban 1000 ciclos del Gibbs sampler y de la salida, hacer los histogramas y estimar $E(Y )$.
+
+```{r}
+result <- ejercicio_4(nsim, X_dado_Y, Y_dado_X)
+# X_dado_Y <- result$X_dado_Y
+# Y_dado_X <- result$Y_dado_X
+hist(X_dado_Y, probability = T, main = "X", ylab = "densidad")
+hist(Y_dado_X, probability = T, main = "X", ylab = "densidad")
+```
+```{r}
+plot(X_dado_Y[1:nsim], Y_dado_X[1:nsim], cex = 0.5)
+```
+
+
 
 5. Supongan que se tiene una matriz de $4 × 4$ de variables aleatorias Bernoulli, y la denotamos por $[X_{ij} ]$, y sea $N (X)$ el número total de éxitos en $X$ (la suma de $X$) y $D(X)$ es el total de vecinos de dichos éxitos (horizontales o verticales) que difieren. Por ejemplo,
 
