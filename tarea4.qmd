@@ -45,29 +45,282 @@ dbeta ~ dnorm(0.0,1.0e-3)
 Lo que sigue al símbolo # es un comentario, así que esta versión corresponde al modelo logit. También \textit{dbin} denota la distribución binomial y \textit{dnorm} denota la distribución normal, donde el segundo argumento denota la precisión, no la varianza (entonces las iniciales
 normales para $α$ y $β$ tienen precisión 0.001, que son aproximadamente iniciales planas (no informativas). Hacer el análisis en OpenBUGS.
 
+# 2. Casella y George (1992)
 
-2. Consideren las siguientes dos distribuciones condicionales completas, analizadas en el artículo de Casella y George (1992) que les incluí como lectura:
+Consideren las siguientes dos distribuciones condicionales completas, analizadas en el artículo de Casella y George (1992) que les incluí como lectura:
 
-$$f (x|y) ∝ ye^{−yx}, 0 < x < B < ∞$$
-$$f (y|x) ∝ xe^{−xy}, 0 < y < B < ∞$$
+$f(x|y) ∝ ye^{−yx}$, $0 < x < B < ∞$
+
+$f(y|x) ∝ xe^{−xy}$ , $0 < y < B < ∞$
 
 * Obtener un estimado de la distribución marginal de X cuando B = 10 usando el Gibbs sampler.
 
+necesitamos simular muestras de las distribuciones condicionales $f(x∣y)$ y $f(y∣x)$ para estimar la marginal de $X$
 
-* Ahora supongan que B = ∞ así que las distribuciones condicionales completas son ahora las ordinarias distribuciones exponenciales no truncadas. Mostrar analíticamente que $f_x(t) = 1/t$ es una solución a la ecuación integral en este caso:
+El algoritmo de Gibbs sampler quedaría de la siguiente manera:
 
-$$f_x(x)=\int\Big[\int f_{x|y}(x|y)f_{y|t}(y|t)dy\Big]f_x(t)dt$$
-¿El Gibbs sampler convergerá a esta solución?
+1.  Inicializamos $x$ y $y$ con valores dentro del rango de soporte (ejemplo, $x0=y0=1$).
 
-3. Supongan que una variable aleatoria y se distribuye de acuerdo a la densidad poli-Cauchy:
+2.  Iteramos sobre un gran número de pasos, en cada paso:
+    a. Muestreamos $x$ de $f(x∣y)$ utilizando el valor actual de $y$.
+    b. Muestrear $y$ de $f(y∣x)$ utilizando el valor actual de $x$.
 
-$$g(y)=\prod^n_{i=1}\frac{1}{\pi(1+(y-a_i)^2)}$$
+3.  Después de un número grande de iteraciones, las muestras de $x$ se pueden utilizar para estimar la distribución marginal de $X$.
 
-donde $a = (a_1, . . ., a_n)$ es un vector de parámetros. Supongan que n = 6 y a = (1, 2, 2, 6, 7, 8).
+Utilizaremos la librería rstan para realizar este ejercicio.
 
-* Escriban una función que calcule la log-densidad de $y$.
-* Escriban una función que tome una muestra de tamaño 10,000 de la densidad de $y$, usando Metropolis-Hastings con función propuesta una caminata aleatoria con desviación estandar $C$. Investiguen el efecto de la elección de $C$ en la tasa de aceptación, y la mezcla de la cadena en la densidad.
-* Usando la muestra simulada de una “buena” elección de C, aproximar la probabilidad $P (6 < Y < 8)$.
+```{r, results='hide', echo=FALSE, warning=FALSE}
+
+# Cargar biblioteca
+library(rstan)
+
+# Definir los datos
+B <- 10
+iterations <- 10000
+
+# Datos para pasar al modelo
+stan_data <- list(
+  B = B,
+  iterations = iterations
+)
+
+# Compilar el modelo
+stan_code <- "
+data {
+  real<lower=0> B; // Valor de B
+  int<lower=0> iterations; // Número de iteraciones del algoritmo de Gibbs
+}
+
+parameters {
+  real<lower=0> x; // Variable x
+  real<lower=0> y; // Variable y
+}
+
+model {
+  // Modelo vacío, ya que las distribuciones condicionales completas se definen en las distribuciones posteriores
+}
+
+generated quantities {
+  real samples_x[iterations]; // Almacenar muestras de x
+  real samples_y[iterations]; // Almacenar muestras de y
+  
+  // Inicializar las variables x e y
+  samples_x[1] = x;
+  samples_y[1] = y;
+  
+  // Iteraciones del algoritmo de Gibbs sampler
+  for (t in 2:iterations) {
+    // Muestrear x dado y
+    samples_x[t] = gamma_rng(y + 1, 1 / (y + 1));
+    
+    // Muestrear y dado x
+    samples_y[t] = gamma_rng(x + 1, 1 / (x + 1));
+  }
+}
+"
+
+# Compilar el modelo
+stan_model <- stan_model(model_code = stan_code)
+
+# Realizar el ajuste
+fit <- sampling(stan_model, data = stan_data, chains = 4)
+
+```
+
+```{r}
+
+# Obtener los resultados
+samples <- extract(fit)
+
+# Visualizar la distribución marginal de x
+hist(samples$x, breaks = 30, main = "Distribución Marginal de X")
+
+```
+
+* Ahora supongan que $B = ∞$ así que las distribuciones condicionales completas son ahora las ordinarias distribuciones exponenciales no truncadas. Mostrar analíticamente que $f_x(t)= \frac{1}{t}$ es una solución a la ecuación integral en este caso:
+
+    * $f_x(x) = \int[\int f_{x|y}(x|y)f-{y|t}(y|t)dy]f_x(t)dt$
+
+Para mostrar analíticamente que $f_X(t)=\frac{1}{t}$ es una solución a la ecuación integral dada, primero necesitamos expresar las distribuciones condicionales $f_{X∣Y}(x∣y)$ y $f_{Y∣T}(y∣t)$ en términos de las distribuciones marginales.
+
+Dado que las distribuciones condicionales ahora son distribuciones exponenciales no truncadas, podemos expresarlas de la siguiente manera:
+
+$f_{X∣Y}(x∣y)=Exp(x∣y)=ye^{-yx}$
+
+$f_{Y∣T}(y∣t)=Exp(y∣t)=te^{−ty}$
+
+Ahora, sustituimos estas expresiones en la ecuación integral:
+
+$f_X(x)=∫_0^∞f_{X∣Y}(x∣y)⋅f_{Y∣T}(y∣t)dy⋅f_{X}(t)dt$
+
+$=∫_0^∞ye^{−yx}⋅te^{−ty}dy⋅\frac{1}{t}dt$
+
+$=∫_0^∞yt⋅e^{−(y+t)x}dy⋅\frac{1}{t}dt$
+
+Para resolver esta integral, primero integramos respecto a $y$ y luego respecto a $t$:
+
+$=∫_0^∞\frac{t}{(x+t)^2}dt$
+
+Ahora, para resolver esta integral, podemos hacer un cambio de variable $u=x+t$, entonces $du=dt$, y cuando $t=0$, $u=x$ y cuando $t=∞$, $u=∞$. Así:
+
+$=∫_x^∞\frac{1}{u2}du$
+
+$=[−\frac{1}{u}]_x^∞$
+
+$=(−\frac{1}{∞})−(−\frac{1}{x})$
+
+$=\frac{1}{x}$
+
+Por lo tanto, $f_X(x)=\frac{1}{x}$​, lo cual demuestra que $f_X(t)=\frac{1}{t}$​ es una solución a la ecuación integral dada.
+
+
+* ¿El Gibbs sampler convergerá a esta solución?
+
+No, el método Gibbs sampler no convergerá a la solución $f_X(x)=\frac{1}{x}$​ en este caso debido a que se trata de un método para muestrear de distribuciones condicionales específicas, no para converger hacia la distribución marginal exacta.
+
+En el caso en que $B=∞$, las distribuciones condicionales completas son distribuciones exponenciales no truncadas. Utilizando el Gibbs sampler con estas distribuciones condicionales, se obtendrán muestras de la distribución conjunta, pero no necesariamente convergerán a la distribución marginal de $X$.
+
+
+# 3.Poli Cauchy
+
+* Supongan que una variable aleatoria y se distribuye de acuerdo a la densidad poli-Cauchy:
+
+    * $g(y) =\prod _{i=1}^n \frac{1}{π(1 + (y − a_i)^2)}$
+
+donde $a = (a_1, . . . a_n)$ es un vector de parámetros. Supongan que n = 6 y $a$ = (1, 2, 2, 6, 7, 8).
+Escriban una función que calcule la log-densidad de $y$.
+
+```{r}
+
+log_densidad_poli_cauchy <- function(y, a) {
+  n <- length(a)
+  log_density <- 0
+  for (i in 1:n) {
+    log_density <- log_density - log(pi * (1 + (y - a[i])^2))
+  }
+  return(log_density)
+}
+
+# Parámetros dados
+a <- c(1, 2, 2, 6, 7, 8)
+
+# Ejemplo 
+y <- 3.5  
+print(paste("Log-densidad de y:", log_densidad_poli_cauchy(y, a)))
+
+
+```
+
+
+* Escriban una función que tome una muestra de tamaño 10,000 de la densidad de y,
+usando Metropolis-Hastings con función propuesta una caminata aleatoria con desvia-
+ción estandar C. Investiguen el efecto de la elección de C en la tasa de aceptación, y la
+mezcla de la cadena en la densidad.
+
+
+```{r, results='hide', echo=FALSE, warning=FALSE}
+
+## Función para calcular la densidad de probabilidad poli-Cauchy
+densidad_poli_cauchy <- function(y, a) {
+  n <- length(a)
+  densidad <- 0
+  for (i in 1:n) {
+    densidad <- densidad + 1 / (pi * (1 + (y - a[i])^2))
+  }
+  return(densidad)
+}
+
+# Función de propuesta: caminata aleatoria
+proposal_function <- function(y, C) {
+  return(y + rnorm(1, mean = 0, sd = C))
+}
+
+# Algoritmo de Metropolis-Hastings
+metropolis_hastings <- function(n_samples, C, initial_value, a) {
+  samples <- numeric(n_samples)
+  samples[1] <- initial_value
+  accepted <- 0
+  
+  for (i in 2:n_samples) {
+    current <- samples[i - 1]
+    proposed <- proposal_function(current, C)
+    
+    acceptance_ratio <- densidad_poli_cauchy(proposed, a) / densidad_poli_cauchy(current, a)
+    accept <- runif(1) < acceptance_ratio
+    
+    if (accept) {
+      samples[i] <- proposed
+      accepted <- accepted + 1
+    } else {
+      samples[i] <- current
+    }
+  }
+  
+  acceptance_rate <- accepted / n_samples
+  return(list(samples = samples, acceptance_rate = acceptance_rate))
+}
+
+# Parámetros del experimento
+n_samples <- 10000
+initial_value <- 0  # Valor inicial para la cadena
+C <- c(0.01, 0.1, 1, 5, 10, 50)  # Diferentes desviaciones estándar
+a <- c(1, 2, 2, 6, 7, 8)  # Parámetros a
+
+# Almacenar tasas de aceptación y muestras para cada valor de C
+acceptance_rates <- numeric(length(C))
+sample_lists <- vector("list", length(C))
+
+# Realizar el experimento para diferentes valores de C
+for (i in seq_along(C)) {
+  result <- metropolis_hastings(n_samples, C[i], initial_value, a)
+  acceptance_rates[i] <- result$acceptance_rate
+  sample_lists[[i]] <- result$samples
+}
+
+# Configurar el diseño de la disposición de las gráficas
+par(mfrow=c(2, 3))
+
+```
+
+```{r}
+
+# Mostrar las gráficas para cada valor de C
+for (i in seq_along(C)) {
+  hist(sample_lists[[i]], breaks = 50, freq = FALSE, main = paste("Histograma con C =", C[i]))
+  curve(densidad_poli_cauchy(x, a), col = "red", lwd = 2, add = TRUE)
+  legend("topright", legend = paste("Tasa acept:", round(acceptance_rates[i], 4)), col = "black", lwd = 1)
+}
+
+
+```
+
+Como podemos ver, el parámetro $C$ en el algoritmo de Metropolis-Hastings controla la desviación estándar de la caminata aleatoria propuesta.
+
+* Impacto general: Un valor mayor de $C$ significa que las propuestas aceptadas se alejarán más de la muestra actual. Por lo tanto, un valor mayor de #C$ permitirá una exploración más rápida del espacio de parámetros, mientras que un valor menor de $C$ limitará el movimiento de las propuestas aceptadas a regiones cercanas a la muestra actual.
+
+* Tasa de aceptación: Si $C$ es demasiado grande, las propuestas serán muy diferentes de la muestra actual, lo que puede resultar en una baja tasa de aceptación, ya que muchas propuestas serán rechazadas. Por otro lado, si $C$ es demasiado pequeño, las propuestas serán muy similares a la muestra actual, lo que también puede conducir a una baja tasa de aceptación debido a que pocas propuestas son aceptadas.
+
+* Mezcla de la cadena: La mezcla de la cadena se refiere a qué tan eficientemente la cadena de Markov generada por el algoritmo de Metropolis-Hastings explora el espacio de parámetros. Si $C$ es demasiado grande, la cadena puede tener dificultades para converger a la distribución objetivo y puede deambular demasiado por el espacio de parámetros. Por otro lado, si $C$ es demasiado pequeño, la cadena puede tardar mucho en explorar diferentes regiones del espacio de parámetros y puede quedarse atascada en óptimos locales.
+
+
+* Usando la muestra simulada de una “buena” elección de $C$, aproximar la probabilidad
+$P (6 < Y < 8)$.
+
+Podemos utilizar una muestra generada con una "buena" elección de $C$ y contar cuántas veces los valores de la muestra caen dentro del intervalo $(6,8)$. Luego, dividimos este conteo por el tamaño total de la muestra para obtener una aproximación de la probabilidad.
+
+```{r}
+
+# Utilizar la muestra generada con una "buena" elección de C
+sample_good_C <- sample_lists[[5]]  # Por ejemplo, tomamos la muestra generada con C = 10
+
+# Calcular la probabilidad P(6 < Y < 8)
+prob_6_to_8 <- sum(sample_good_C > 6 & sample_good_C < 8) / length(sample_good_C)
+
+# Imprimir el resultado
+print(paste("La probabilidad P(6 < Y < 8) es:", prob_6_to_8))
+
+
+```
 
 4. Supongan que el vector $(X, Y )$ tiene función de distribución conjunta:
 
