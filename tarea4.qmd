@@ -416,7 +416,7 @@ ggplot(result, aes(x=Y_dado_X)) +
 
 
 ```{r}
- ggplot(result, aes(X_dado_Y, Y_dado_X))+ geom_point()+ geom_jitter()
+ ggplot(result, aes(X_dado_Y, Y_dado_X))+ geom_point(color = 'blue')+ geom_jitter(color = 'blue')
 ```
 
 
@@ -424,23 +424,352 @@ ggplot(result, aes(x=Y_dado_X)) +
 5. Supongan que se tiene una matriz de $4 × 4$ de variables aleatorias Bernoulli, y la denotamos por $[X_{ij} ]$, y sea $N (X)$ el número total de éxitos en $X$ (la suma de $X$) y $D(X)$ es el total de vecinos de dichos éxitos (horizontales o verticales) que difieren. Por ejemplo,
 
 ![](tarea4ejer5.png)
+ 
+Noten que si se escriben los elementos de $X$ en un vector $V$ , entonces existe una matriz $M$ de $24 × 16$ tal que $D(X)$ es la suma de los valores absolutos de $M V$ . El 24 surge porque hay 24 pares de vecinos a revisar. 
 
-Noten que si se escriben los elementos de $X$ en un vector $V$ , entonces existe una matriz $M$ de $24 × 16$ tal que $D(X)$ es la suma de los valores absolutos de $M V$ . El 24 surge porque hay 24 pares de vecinos a revisar. Supongan que $π(X)$, la distribución de $X$, es proporcional a
+```{r}
+#              1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+M <- matrix(c(-1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #1
+               0, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #2
+               0,  0, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #3
+               0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #4
+               0,  0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #5
+               0,  0,  0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  0,  0,  0,  0,  #6
+               0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  0,  0,  #7
+               0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  0,  #8
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  0,  0,  0,  0,  #9
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  0,  0,  #10
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  0,  #11
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  1,  #12
+              -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #13
+               0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  #14
+               0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  #15
+               0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #16
+               0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  #17
+               0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  #18
+               0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  #19
+               0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  #20
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  #21
+               0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  #22
+               0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1,  0,  0,  0,  0,  #23
+               0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -1,  0,  0,  0,  1), nrow=24, byrow = TRUE)
+print(M)
+```
+```{r}
+X2 <- c(1,  1,  0,  0,
+        0,  1,  0,  0,
+        0,  0,  0,  0,
+        0,  0,  0,  0)
+sum( abs( M %*% X2 ) )
+
+```
+
+Supongan que $π(X)$, la distribución de $X$, es proporcional a
 
 $$π(X) ∝ p^{N (X)}(1 − p)^{16−N (X)} \exp (−λD(X))$$
+
+```{r}
+problema5 <- function(p, X, lambda){
+  D <- sum(abs(M %*% X))
+  N <- sum(X)
+  f <- p^N * (1 - p)^(16 - N) * exp(-lambda * D)
+  return(f)
+}
+```
+
+
+
+
 Si $λ = 0$, las variables son iid Bernoulli ($p$).
 
 Usar el método de Metropolis-Hastings usando los siguientes kerneles de transición. Hay $2^{16}$ posibles estados, uno por cada posible valor de $X$.
 
   a) Sea $q_1$ tal que cada transición es igualmente plausible con probabilidad $1/2^{16}$. Esto es, el siguiente estado candidato para $X$ es simplemente un vector de 16 iid Bernoulli ($p$).
+  
+  
   b) Sea $q_2$ tal que se elige una de las $16$ entradas en $X$ con probabilidad $1/16$, y luego se determina el valor de la celda a ser 0 o 1 con probabilidad 0.5 en cada caso. Entonces sólo un elemento de X puede cambiar en cada transición a lo más.
+
   
 Ambas $q$’s son simétricas, irreducibles y tienen diagonales positivas. La primera se mueve más rápido que la segunda.
 
-Estamos interesados en la probabilidad de que todos los elementos de la diagonal sean 1. Usen las dos $q$’s para estimar la probabilidad de 1’s en la diagonal para $λ = 0, 1, 3$ y $p = 0.5, 0.8$. Esto se puede hacer calculando la fracción acumulada de veces que la cadena tiene 1’s sobre la diagonal conforme se muestrea de la cadena. Comparar los resultados de
+Estamos interesados en la probabilidad de que todos los elementos de la diagonal sean 1. Usen las dos $q$’s para estimar la probabilidad de 1’s en la diagonal para $λ = 0, 1, 3$ y $p = 0.5, 0.8$. 
+
+```{r}
+lambda_1 <- 0
+lambda_2 <- 1
+lambda_3 <- 3
+
+p_1 <- 0.5
+p_2 <- 0.8
+```
+
+
+Esto se puede hacer calculando la fracción acumulada de veces que la cadena tiene 1’s sobre la diagonal conforme se muestrea de la cadena. Comparar los resultados de
 las 2 cadenas. Tienen el mismo valor asintótico, pero ¿una cadena llega más rápido que la otra? ¿Alguna cadena muestra más autocorrelación que la otra (por ejemplo, estimados de la probabilidad en 100 pasos sucesivos muestran más correlación para una cadena que para la otra?).
 
+Para a)
+
+```{r}
+metropolis_hastings <- function(initial_vector, iterations, p, lambda) {
+  current_vector <- initial_vector
+  accepted_states <- numeric(iterations)
+
+  for (iter in 1:iterations) {
+    # Calculate current probability without proposing a new sample
+    current_probability <- problema5(p, current_vector, lambda)
+
+    # Propose a new random vector
+    proposed_vector <- sample(0:1, length(initial_vector), replace = TRUE)
+
+    # Calculate probability for the proposed vector
+    proposed_probability <- problema5(p, proposed_vector, lambda)
+
+    # Accept or reject the proposal based on Metropolis-Hastings acceptance ratio
+    if (runif(1) < proposed_probability / current_probability) {
+      current_vector <- proposed_vector
+    }
+
+    # Save 1 if all specified positions have 1, otherwise save 0
+    accepted_states[iter] <- all(current_vector[c(4, 8, 12, 16)] == 1)
+  }
+
+  return(accepted_states)
+}
+```
+
+
+```{r}
+# lambda_1, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_1
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_1
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_2, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_2
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_2
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_3, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_3
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_3
+
+accepted_states <- metropolis_hastings(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+
+```{r}
+metropolis_hastings2 <- function(initial_vector, iterations, p, lambda) {
+  current_vector <- initial_vector
+  accepted_states <- numeric(iterations)
+
+  for (iter in 1:iterations) {
+    # Calculate current probability without proposing a new sample
+    current_probability <- problema5(p, current_vector, lambda)
+
+    # Propose a new vector by changing one element randomly
+    proposed_vector <- current_vector
+    random_position <- sample(1:length(initial_vector), 1)
+    proposed_vector[random_position] <- 1 - proposed_vector[random_position]
+
+    # Calculate probability for the proposed vector
+    proposed_probability <- problema5(p, proposed_vector, lambda)
+
+    # Accept or reject the proposal based on Metropolis-Hastings acceptance ratio
+    if (runif(1) < proposed_probability / current_probability) {
+      current_vector <- proposed_vector
+    }
+
+    # Save 1 if all specified positions have 1, otherwise save 0
+    accepted_states[iter] <- all(current_vector[c(4, 8, 12, 16)] == 1)
+  }
+
+  return(accepted_states)
+}
+```
+
+
+
+
+```{r}
+# lambda_1, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_1
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_1
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_2, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_2
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_2
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_3, p_1, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_1
+lambda <- lambda_3
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+```{r}
+# lambda_1, p_2, 
+set.seed(123)  # Set seed for reproducibility
+initial_vector <- sample(0:1, 16, replace = TRUE)  # Initial random vector
+iterations <- 10000
+p <- p_2
+lambda <- lambda_3
+
+accepted_states <- metropolis_hastings2(initial_vector, iterations, p, lambda)
+
+# Print the result (1 if all positions 4, 8, 12, 16 have 1, 0 otherwise)
+plot(accepted_states, type = "l", col = "blue", main = "Accepted States",
+       xlab = "Iteration", ylab = "Accepted (1) / Rejected (0)")
+```
+
+
+
 En este problema, también determinen cuántas simulaciones hay que hacer, para desechar el periodo de calentamiento.
+
+  a)    * $\lambda_1, p_1$, no converge
+        * $\lambda_1, p_2$, no converge 
+        * $\lambda_2, p_1$, 8000
+        * $\lambda_2, p_2$, 5000
+        * $\lambda_3, p_1$, no converge
+        * $\lambda_3, p_2$, 500
+
+  b)    * $\lambda_1, p_1$, no converge
+        * $\lambda_1, p_2$, no converge
+        * $\lambda_2, p_1$, no converge
+        * $\lambda_2, p_2$, no converge
+        * $\lambda_3, p_1$, no converge
+        * $\lambda_3, p_2$, no converge
+
 
 6. Considera los siguientes números:
 
