@@ -777,10 +777,21 @@ $$0.4, 0.01, 0.2, 0.1, 2.1, 0.1, 0.9, 2.4, 0.1, 0.2$$
 Usen la distribución exponencial $Y_i ∼ \exp (θ)$ para modelar estos datos y asignen una inicial sobre $\log θ$.
 
   a) Definan los datos en WinBUGS (u OpenBUGS). Usen $θ = 1$ como valor inicial.
+```{r}
+data_p6 <- list(
+  x = 
+)
+```
+  
+
   b) Escriban el código para el modelo.
+
   c) Compilen el modelo y obtengan una muestra de 1000 iteraciones después de descartar las 500 iteraciones iniciales como burnin.
+
   d) Monitoreen la convergencia gráficamente usando gráficas ’trace’ y de autocorrelación.
+
   e) Obtengan estadísticas sumarias posteriores y densidades para $θ$, $1/θ$ y $\log θ$
+
   f) Con los datos el primer inciso, ahora usen las distribuciones (i) gamma (ii) log-normal para modelar los datos, así como (iii) normal para los logaritmos de los valores originales. En todos los modelos hagan un ejercicio similar al de los numerales previos, y comparen los resultados obtenidos bajo todos los modelos. Hagan todos los supuestos que tengan que hacer.
 
 
