@@ -1,0 +1,8 @@
+
+model {
+  for (i in 1:n) {
+    y[i] ~ dbern(theta) # verosimilitud
+  }
+  theta ~ dbeta(1,1) # inicial; dbeta(1,1) es la distribución uniforme
+}
+
