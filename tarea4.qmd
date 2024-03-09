@@ -13,37 +13,113 @@ library(patchwork)
 library(kableExtra)
 ```
 
-1. Spiegelhalter et al. (1995) analiza la mortalidad del escarabajo del trigo en la siguiente tabla, usando BUGS.
-
-```{r echo=FALSE}
-tabla = tibble(Dosis_wi = c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113, 1.8369, 1.8610, 1.8839), muertos_yi = c(6, 13, 18, 28, 52, 53, 61, 60), expuestos_ni = c(59, 60, 62, 56, 63, 59, 62, 60))
-tabla %>% kable() %>% kable_paper(full_width = FALSE)
-```
-
-Estos autores usaron una parametrización usual en dos parámetros de la forma $p_i ≡ P (\text{muerte}|w_i)$, pero comparan tres funciones ligas diferentes:
-
-$$\text{logit: }p_i=\frac{\exp(\alpha+\beta z_i)}{1 + \exp(\alpha + \beta z_i)}$$
-$$\text{probit: }p_i = \Phi(\alpha + \beta z_i)$$
-$$\text{complementario log-log: }p_i=1-\exp[-\exp(\alpha+\beta z_i)]$$
-
-en donde se usa la covariada centrada $z_i = w_i-\bar w$ para reducir la correlación entre la ordenada $α$ y la pendiente $β$. En OpenBUGS el código para implementar este modelo es el que sigue:
+#1. Escarabajos
+Spiegelhalter et al. (1995) analiza la mortalidad del escarabajo del trigo en la siguiente tabla, usando BUGS.
 
 ```{r}
-modelo1 = "model{
-for (i in 1:k){
-y[i] ~ dbin(p[i],n[i])
-logit(p[i]) <- alpha + beta*(w[i]-mean(w[])
-# probit(p[i]) <- alpha + beta*(w[i]-mean(w[])
-# cloglog(p[i]) <- alpha + beta*(w[i]-mean(w[])
-} #fin del loop i
-alpha ~ dnorm(0.0,1.0e-3)
-dbeta ~ dnorm(0.0,1.0e-3)
-} #fin del código"
+library(rstan)
+library(V8)
+
+#| Dosis | # muertos | # expuestos |
+#|-------|-----------|-------------|
+#| 1.6907| 6         | 59          |
+#| 1.7242| 13        | 60          |
+#| 1.7552| 18        | 62          |
+#| 1.7842| 28        | 56          |
+#| 1.8113| 52        | 63          |
+#| 1.8369| 53        | 59          |
+#| 1.8610| 61        | 62          |
+#| 1.8839| 60        | 60          |
 ```
 
+Estos autores usaron una parametrización usual en dos parámetros de la forma $pi ≡ P(muerte|wi)$, pero comparan tres funciones ligas diferentes:
 
-Lo que sigue al símbolo # es un comentario, así que esta versión corresponde al modelo logit. También \textit{dbin} denota la distribución binomial y \textit{dnorm} denota la distribución normal, donde el segundo argumento denota la precisión, no la varianza (entonces las iniciales
-normales para $α$ y $β$ tienen precisión 0.001, que son aproximadamente iniciales planas (no informativas). Hacer el análisis en OpenBUGS.
+logit: $p_i = \frac{\exp(\alpha + \beta z_i)}{1 + \exp(\alpha + \beta z_i)}$
+
+probit: $p_i = \Phi(\alpha + \beta z_i)$
+
+complementario log-log: $p_i = 1 - \exp\left[-\exp(\alpha + \beta z_i)\right]$
+
+en donde se usa la covariada centrada $z_i = w_i − \bar{w}$̄ para reducir la correlación entre la ordenada $α$ y la pendiente $β$. En OpenBUGS el código para implementar este modelo es el que sigue:
+
+LOGIT
+
+```{r}
+dosis <- c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113, 1.8369, 1.8610, 1.8839)
+muertos <- c(6, 13, 18, 28, 52, 53, 61, 60)
+expuestos <- c(59, 60, 62, 56, 63, 59, 62, 60)
+
+# Prepara los datos en un formato adecuado para Stan
+datos_stan <- list(
+  k = length(muertos),
+  y = muertos,
+  n = expuestos,
+  w = dosis
+)
+
+setwd("./tarea4_files/")
+
+fit_logit <- stan(file = 'logit1.stan', data = datos_stan, iter = 2000, chains = 4)
+```
+
+```{r}
+print(fit_logit)
+```
+
+En el caso con una función liga logit, la media posterior de $α$ se ubica en 0.75 con una desviación estándar de 0.14. Por su parte, la media posterior de $β$ se ubica en 34.59 con una desviación estándar de 3.01. Este parámetro nos idica que existe una relación positiva entre la cantidad utilizada de pesticidad y la mortalidad de los escarabajos. En promedio el modelo tiene una log_p de -187.28, donde un valor más alto indica un mejor ajuste. También destaca al observar los valores de Rhat que las cadenas han convergido.
+
+PROBIT
+
+```{r}
+dosis <- c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113, 1.8369, 1.8610, 1.8839)
+muertos <- c(6, 13, 18, 28, 52, 53, 61, 60)
+expuestos <- c(59, 60, 62, 56, 63, 59, 62, 60)
+
+# Prepara los datos en un formato adecuado para Stan
+datos_stan <- list(
+  k = length(muertos),
+  y = muertos,
+  n = expuestos,
+  w = dosis
+)
+
+setwd("./tarea4_files/")
+
+fit_probit <- stan(file = 'probit1.stan', data = datos_stan, iter = 2000, chains = 4)
+```
+
+```{r}
+print(fit_probit)
+```
+
+En el caso con una función liga probit, la media posterior de $α$ se ubica en 0.45 con una desviación estándar de 0.08. Por su parte, la media posterior de $β$ se ubica en 19.84 con una desviación estándar de 1.05. Este parámetro nos idica que existe una relación positiva entre la cantidad utilizada de pesticidad y la mortalidad de los escarabajos. Es importante enfatizar que ambos parámetros registran una media y una desviación estándar inferior al obtenido con la función logit. En promedio el modelo tiene una log_p de -186.67, que es más alto que el obtenido con el modelo logit, lo que indica un mejor ajuste. También destaca al observar los valores de Rhat que las cadenas han convergido.
+
+C LOG-LOG
+
+```{r}
+dosis <- c(1.6907, 1.7242, 1.7552, 1.7842, 1.8113, 1.8369, 1.8610, 1.8839)
+muertos <- c(6, 13, 18, 28, 52, 53, 61, 60)
+expuestos <- c(59, 60, 62, 56, 63, 59, 62, 60)
+
+# Prepara los datos en un formato adecuado para Stan
+datos_stan <- list(
+  k = length(muertos),
+  y = muertos,
+  n = expuestos,
+  w = dosis
+)
+
+setwd("./tarea4_files/")
+
+fit_clog <- stan(file = 'cloglog.stan', data = datos_stan, iter = 2000, chains = 4)
+```
+
+```{r}
+print(fit_clog)
+```
+
+En el caso con una función liga c log-log, la media posterior de $α$ se ubica en -0.05 con una desviación estándar de 0.08. Por su parte, la media posterior de $β$ se ubica en 22.14 con una desviación estándar de 1.83. Este parámetro nos idica que existe una relación positiva entre la cantidad utilizada de pesticidad y la mortalidad de los escarabajos. Es importante enfatizar que ambos parámetros registran una media y una desviación estándar distinta a las obtenidas con los modelos anteriores. En promedio el modelo tiene una log_p de -183.36, que es la más alta de los 3 modelos, lo que indica el mejor ajuste. También destaca al observar los valores de Rhat que las cadenas han convergido.
+
 
 # 2. Casella y George (1992)
 
@@ -771,18 +847,195 @@ En este problema, también determinen cuántas simulaciones hay que hacer, para 
         * $\lambda_3, p_2$, no converge
 
 
-6. Considera los siguientes números:
+#6. Exponencial y más
 
-$$0.4, 0.01, 0.2, 0.1, 2.1, 0.1, 0.9, 2.4, 0.1, 0.2$$
-Usen la distribución exponencial $Y_i ∼ \exp (θ)$ para modelar estos datos y asignen una inicial sobre $\log θ$.
+Considera los siguientes números: $$0.4, 0.01, 0.2, 0.1, 2.1, 0.1, 0.9, 2.4, 0.1, 0.2$$ Usen la distribución exponencial $Y_i ∼ exp (θ)$ para modelar estos datos y asignen una inicial sobre log $θ$.
 
-  a) Definan los datos en WinBUGS (u OpenBUGS). Usen $θ = 1$ como valor inicial.
-  b) Escriban el código para el modelo.
-  c) Compilen el modelo y obtengan una muestra de 1000 iteraciones después de descartar las 500 iteraciones iniciales como burnin.
-  d) Monitoreen la convergencia gráficamente usando gráficas ’trace’ y de autocorrelación.
-  e) Obtengan estadísticas sumarias posteriores y densidades para $θ$, $1/θ$ y $\log θ$
-  f) Con los datos el primer inciso, ahora usen las distribuciones (i) gamma (ii) log-normal para modelar los datos, así como (iii) normal para los logaritmos de los valores originales. En todos los modelos hagan un ejercicio similar al de los numerales previos, y comparen los resultados obtenidos bajo todos los modelos. Hagan todos los supuestos que tengan que hacer.
+a)  Definan los datos en WinBUGS (u OpenBUGS). Usen θ = 1 como valor inicial.
+b)  Compilen el modelo y obtengan una muestra de 1000 iteraciones después de descartar las 500 iteraciones iniciales como burnin.
 
+```{r}
+library(bayesplot)
 
+# Opciones recomendadas para evitar problemas de compilación
+rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
 
+# Definimos los datos para el modelo Stan
+datos <- list(N = 10, 
+              y = c(0.4, 0.01, 0.2, 0.1, 2.1, 0.1, 0.9, 2.4, 0.1, 0.2))
+
+setwd("./tarea4_files/")
+
+# Compilamos y muestreamos el modelo desde el archivo
+fit_exp <- stan(file = 'exp.stan', data = datos, 
+            chains = 4,            
+            warmup = 500,          
+            iter = 2000,           
+            seed = 41290           
+           )
+```
+
+```{r}
+print(fit_exp)
+```
+
+b)  Escriban el código para el modelo.
+
+```{r}
+#modelo
+#data {
+#  int<lower=0> N;         // Número de observaciones
+#  vector[N] y;            // Vector de tamaño N de observaciones/datos
+#}
+#
+#parameters {
+#  real<lower=0> theta;    // Parámetro de la distribución exponencial
+#}
+#
+#model {
+#  // Prior distribución para theta
+#  theta ~ normal(0, 10);  // Distribución previa no informativa para log(theta)
+#
+#  // Likelihood de los datos
+#  for (n in 1:N) {
+#    y[n] ~ exponential(theta);
+#  }
+#}
+#
+#generated quantities {
+#  real log_theta = log(theta); // Logaritmo de theta
+#  real inv_theta = 1 / theta;  // Inverso de theta
+#}
+```
+
+d)  Monitoreen la convergencia gráficamente usando gráficas ’trace’ y de autocorrelación.
+
+```{r}
+stan_trace(fit_exp)
+```
+
+e)  Obtengan estadísticas sumarias posteriores y densidades para $θ$, $1/θ$ y $log θ$
+
+```{r}
+stan_dens(fit_exp)
+```
+
+```{r}
+posterior_theta <- extract(fit_exp)$theta
+posterior_inv_theta <- extract(fit_exp)$inv_theta
+posterior_log_theta <- extract(fit_exp)$log_theta
+
+# Graficar las densidades
+hist(posterior_theta, probability = TRUE, main = 'Density of theta')
+
+```
+
+```{r}
+hist(posterior_inv_theta, probability = TRUE, main = 'Density of 1/theta')
+```
+
+```{r}
+hist(posterior_log_theta, probability = TRUE, main = 'Density of log(theta)')
+```
+
+f ) Con los datos el primer inciso, ahora usen las distribuciones (i) gamma (ii) log-normal para modelar los datos, así como (iii) normal para los logaritmos de los valores originales. En todos los modelos hagan un ejercicio similar al de los numerales previos, y comparen los resultados obtenidos bajo todos los modelos. Hagan todos los supuestos que tengan que hacer.
+
+(i) gamma
+
+```{r}
+setwd("./tarea4_files/")
+
+# Compilar y muestrear el modelo
+fit_gamma <- stan(file = 'gamma.stan', 
+                  data = datos, 
+                  chains = 4, 
+                  warmup = 500, 
+                  iter = 1500,  # Total de iteraciones
+                  seed = 41290)
+
+print(fit_gamma)
+```
+
+```{r}
+stan_trace(fit_gamma)
+```
+
+```{r}
+# Obtener y graficar la densidad posterior para theta, 1/theta y log(theta)
+posterior_theta <- extract(fit_gamma)$theta
+posterior_inv_theta <- extract(fit_gamma)$inv_theta
+posterior_log_theta <- extract(fit_gamma)$log_theta
+
+# Graficar las densidades
+hist(posterior_theta, probability = TRUE, main = 'Density of theta')
+hist(posterior_inv_theta, probability = TRUE, main = 'Density of 1/theta')
+hist(posterior_log_theta, probability = TRUE, main = 'Density of log(theta)')
+```
+
+(ii) log-normal
+
+```{r}
+setwd("./tarea4_files/")
+
+# Compilar y muestrear el modelo
+fit_lognormal <- stan(file = 'lognormal.stan', 
+                      data = datos, 
+                      chains = 4, 
+                      warmup = 500, 
+                      iter = 1500,  # Total de iteraciones 
+                      seed = 41290)
+
+print(fit_lognormal)
+```
+
+```{r}
+stan_trace(fit_lognormal)
+```
+
+```{r}
+# Obtener y graficar la densidad posterior para theta, 1/theta y log(theta)
+posterior_theta <- extract(fit_lognormal)$theta
+posterior_inv_theta <- extract(fit_lognormal)$inv_theta
+posterior_log_theta <- extract(fit_lognormal)$log_theta
+
+# Graficar las densidades
+hist(posterior_theta, probability = TRUE, main = 'Density of theta')
+hist(posterior_inv_theta, probability = TRUE, main = 'Density of 1/theta')
+hist(posterior_log_theta, probability = TRUE, main = 'Density of log(theta)')
+
+```
+
+(iii) normal
+
+```{r}
+setwd("./tarea4_files/")
+
+# Compilar y muestrear el modelo
+fit_normal_log <- stan(file = 'normal.stan', 
+                       data = datos, 
+                       chains = 4, 
+                       warmup = 500, 
+                       iter = 1500,  # Total de iteraciones = warmup + iteraciones deseadas
+                       seed = 41290)
+
+print(fit_normal_log)
+```
+
+```{r}
+stan_trace(fit_normal_log)
+```
+
+```{r}
+# Obtener y graficar la densidad posterior para theta, 1/theta y log(theta)
+posterior_theta <- extract(fit_normal_log)$theta
+posterior_inv_theta <- extract(fit_normal_log)$inv_theta
+posterior_log_theta <- extract(fit_normal_log)$log_theta
+
+# Graficar las densidades
+hist(posterior_theta, probability = TRUE, main = 'Density of theta')
+hist(posterior_inv_theta, probability = TRUE, main = 'Density of 1/theta')
+hist(posterior_log_theta, probability = TRUE, main = 'Density of log(theta)')
+
+```
 
