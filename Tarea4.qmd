@@ -1,0 +1,76 @@
+---
+title: "Tarea 4"
+author: "Iván, Alberto, Sara y Val"
+format: html
+editor: visual
+---
+
+1.  Spiegelhalter et al. (1995) analiza la mortalidad del escarabajo del trigo en la siguiente tabla, usando BUGS.
+
+```{r}
+
+```
+
+2.  Consideren las siguientes dos distribuciones condicionales completas, analizadas en el ar- tículo de Casella y George (1992) que les incluí como lectura:
+
+```{r}
+
+```
+
+3.  Supongan que una variable aleatoria y se distribuye de acuerdo a la densidad poli-Cauchy:
+
+```{r}
+
+```
+
+4.  Supongan que el vector $(X,Y)$ tiene una función de distribución conjunta:
+
+```{r}
+
+```
+
+5.  Supongan que se tiene una matriz de 4 × 4 de variables aleatorias Bernoulli, y la denotamos por $[X_{ij}]$, y sea $N(X)$ el número total de éxitos en $X$ (la suma de $X$) y $D(X)$ es el total de vecinos de dichos éxitos (horizontales o verticales) que difieren. Por ejemplo,
+
+```{r}
+
+```
+
+6.  Considera los siguientes números: $$0.4, 0.01, 0.2, 0.1, 2.1, 0.1, 0.9, 2.4, 0.1, 0.2$$ Usen la distribución exponencial $Y_i ∼ exp (θ)$ para modelar estos datos y asignen una inicial sobre log $θ$.
+
+<!-- -->
+
+a)  Definan los datos en WinBUGS (u OpenBUGS). Usen θ = 1 como valor inicial.
+
+```{r}
+
+```
+
+b)  Escriban el código para el modelo.
+
+```{r}
+
+```
+
+c)  Compilen el modelo y obtengan una muestra de 1000 iteraciones después de descartar las 500 iteraciones iniciales como burnin.
+
+```{r}
+
+```
+
+d)  Monitoreen la convergencia gráficamente usando gráficas ’trace’ y de autocorrelación.
+
+```{r}
+
+```
+
+e)  Obtengan estadísticas sumarias posteriores y densidades para $θ$, $1/θ$ y $log θ$
+
+```{r}
+
+```
+
+f ) Con los datos el primer inciso, ahora usen las distribuciones (i) gamma (ii) log-normal para modelar los datos, así como (iii) normal para los logaritmos de los valores origi- nales. En todos los modelos hagan un ejercicio similar al de los numerales previos, y comparen los resultados obtenidos bajo todos los modelos. Hagan todos los supuestos que tengan que hacer.
+
+```{r}
+
+```
