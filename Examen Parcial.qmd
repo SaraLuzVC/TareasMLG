@@ -1,0 +1,861 @@
+---
+title: "Examen Parcial"
+author: "Sara Luz Valenzuela Camacho (CU 204535)"
+format: pdf
+editor: source
+execute:
+  cache: true
+---
+
+# Examen Parcial
+
+### Bibliotecas
+
+```{r}
+library(tidyverse)
+library(cmdstanr)
+library(dplyr)
+library('bayesplot')
+```
+
+
+## Pregunta 1
+
+Sea $\theta$ la tasa de créditos hipotecarios otorgados por un banco en Argentina. Durante el 2023 la tasa promedio fue de 60 % y la desviación estándar de la tasa fue de 0.04. En lo que va del año 2024 se han solicitado 100 créditos, de los cuales se han otorgado únicamente 50.
+
+
+  a. Usando la información del año pasado, encuentra la distribución beta que mejor describe el conocimiento inicial.
+  
+$$E[X]=\frac{\alpha}{\alpha+\beta}=0.6$$
+$$0.4\alpha=0.6\beta$$
+$$\frac{2}{3}\alpha=\beta$$
+
+
+
+$$\text{var}[X]=\frac{\alpha \beta}{(\alpha+\beta)^2(\alpha+\beta+1)}=0.04^2$$
+$$\frac{\frac{2}{3}\alpha^2 }{(\frac{5}{3}\alpha)^2(\frac{5}{3}\alpha+1)}=0.04^2$$
+$$\frac{2}{3}\alpha^2=(0.04^2)(\frac{5^2}{3^2}\alpha^2)(\frac{5}{3}\alpha+1)$$
+$$\frac{2}{3}\alpha^2=(0.04^2)(\frac{5^3}{3^3}\alpha^3+\frac{5^2}{3^2}\alpha)$$
+$$\Big[\frac{2}{3}-0.04^2\frac{5^2}{3^2}\Big]\alpha^2=0.04^2\frac{5^3}{3^3}\alpha^3$$
+Si $\alpha\neq 0$
+
+$$\alpha=\frac{2/3-(0.04^2)(5^2/3^2)}{0.04^2(5^3/3^3)}=89.4$$
+$$\beta=\frac{2}{3}\alpha=\frac{2}{3}89.4=59.6$$
+  
+```{r}
+alpha_1 = (2/3-0.0016*(5^2/3^2))/(0.0016*(5^3/3^3))
+beta_1 = 2/3*alpha_1
+#define range
+p = seq(0, 1, length=100)
+prior_beta_1 <- dbeta(p, alpha_1, beta_1)/sum(dbeta(p, alpha_1, beta_1))
+#create plot of Beta distribution with shape parameters 2 and 10
+plot(p, prior_beta_1, type='l')
+```
+
+  b. Usando la información del año pasado, encuentra la distribución normal transformada que mejor describa el conocimiento inicial.
+  
+Usando la liga canónica de la distribucón de Bernoulli:
+
+$$logit(\theta) = \text{ln}\Big(\frac{\theta}{1-\theta}\Big)=\text{ln}\Big(\frac{0.6}{1-0.6}\Big)=0.40546$$
+  $$\frac{\partial^2b}{\partial \theta^2}=\frac{\partial^2}{\partial \theta^2}\log(1+e^\theta)=\frac{\partial}{\partial \theta}\frac{e^\theta}{1+e^\theta}=\frac{e^\theta}{(1+e^\theta)^2}=\frac{e^{0.6}}{(1+e^{0.6})^2}=0.24$$
+  
+
+```{r}
+mu_1 = log(0.6/(1-0.6))
+std_1 = exp(mu_1)/(1+exp(mu_1))^2          
+
+# exp(mu_1)/(1+exp(mu_1))^2
+
+#create plot of Beta distribution with shape parameters 2 and 10
+plot(p, dnorm(p, mean=mu_1, sd=std_1), type='l')
+```
+
+
+  **OJO, acá el profesor comentó la hicieramos como una normal sin transformar**
+
+```{r}
+mu_1 = 0.6
+std_1 = 0.04        
+
+# exp(mu_1)/(1+exp(mu_1))^2
+prior_norm_1  <-dnorm(p, mean=mu_1, sd=std_1)
+prior_norm_1 <- prior_norm_1 / sum(prior_norm_1)
+#create plot of Beta distribution with shape parameters 2 and 10
+plot(p, prior_norm_1 , type='l')
+```
+
+
+  c. Determina la distribución inicial de referencia.
+
+Elegimos una uniforme, sin embargo sabemos que una Beta cuyos parámetros son $\alpha=\beta=1$ es igual a una uniforme en [0,1].
+
+```{r}
+alpha_2 = 1
+beta_2 = 1
+#define range
+p = seq(0, 1, length=100)
+#create plot of Beta distribution with shape parameters 2 and 10
+prior_unif_1 <- dbeta(p, alpha_2, beta_2)
+prior_unif_1 <- prior_unif_1/ sum(prior_unif_1)
+plot(p, dbeta(p, alpha_2, beta_2), type='l')
+```
+
+
+```{r}
+xlim <- range(c(0,1))
+ylim <- range(c(0,0.1))
+plot(p, prior_beta_1, type='l',xlim=xlim, ylim=ylim, main="Priors", #sub="Distribuciones iniciales",
+  xlab="tasa de aprobación de créditos", ylab="probabilidad")
+lines(p, prior_norm_1 ,lty=2,lwd=2,col="green")
+lines(p, prior_unif_1,lty=3,lwd=2,col="blue")
+```
+
+
+
+  d. Usando los datos del año 2024 encuentra la distribución final para cada una de las distribuciones iniciales de los incisos (a) – (c).
+  
+Sabemos que en el 2024 de 100 créditos, se otrorgaron únicamente 50, por lo que la verosimilitud es:
+
+$$\mathcal{L}=\theta^{50}(1-\theta)^{50}$$
+$$\log\mathcal{L}=50\log\theta+50\log(1-\theta)$$
+
+Para a) Beta(89.4, 59.6)
+
+Sabemos que para el conjugado beta-binomial, la posterior es una $Beta(\alpha+n,\beta+N-n)$
+
+```{r}
+alpha_1_pos <- alpha_1 + 50
+beta_1_pos <- beta_1 + 50
+
+prior <- prior_beta_1
+posterior <- dbeta(p, alpha_1_pos, beta_1_pos)/sum(dbeta(p, alpha_1_pos, beta_1_pos))
+
+plot(p, posterior, type = "l", col = "red",
+     xlab="tasa de aprobación de créditos", ylab="probabilidad")
+lines(p, prior, type = "l", col = "green")
+```
+Haciendolo con STAN
+
+```{r}
+modelo_1a <- cmdstan_model("./parcial1ej1a.stan")
+print(modelo_1a)
+```
+
+```{r}
+data_list <- list(N = 100, y = c(rep(1, 50),rep(0, 50)))
+
+fit1a <- modelo_1a$sample(
+  data = data_list,
+  seed = 123,
+  chains = 4,
+  parallel_chains = 4,
+  refresh = 500 # print update every 500 iters
+)
+```
+
+```{r}
+mcmc_hist(fit1a$draws("theta"))
+```
+
+
+Para b) Normal(0.6,0.04)
+
+$$\propto\Bigg[\frac{1}{\sigma\sqrt{2\pi}}e^{\frac{1}{2}\big(\frac{\theta-\mu}{\sigma}\big)^2}\Big(50\log\theta+50\log(1-\theta)\Big)\Bigg]d\theta$$
+
+
+```{r}
+modelo_1b <- cmdstan_model("./parcial1ej1b.stan")
+print(modelo_1b)
+```
+
+```{r}
+data_list <- list(N = 100, y = c(rep(1, 50),rep(0, 50)))
+
+fit1b <- modelo_1b$sample(
+  data = data_list,
+  seed = 123,
+  chains = 4,
+  parallel_chains = 4,
+  refresh = 500 # print update every 500 iters
+)
+```
+  
+```{r}
+mcmc_hist(fit1b$draws("theta"))
+```
+
+  
+Para c) Uniforme en [0,1]
+
+
+```{r}
+modelo_1c <- cmdstan_model("./parcial1ej1c.stan")
+modelo_1c$print()
+```
+
+```{r}
+data_list <- list(N = 100, y = c(rep(1, 50),rep(0, 50)))
+
+fit1c <- modelo_1c$sample(
+  data = data_list,
+  seed = 123,
+  chains = 4,
+  parallel_chains = 4,
+  refresh = 500 # print update every 500 iters
+)
+```
+
+  
+```{r}
+mcmc_hist(fit1c$draws("theta"))
+```
+
+  e. Estima la tasa de créditos otorgados, usando las 3 distribuciones finales del inciso (d).
+  
+Para a) Beta(89.4, 59.6)
+
+```{r}
+fit1a$summary()
+```
+
+Para b) Normal(0.6,0.04)
+
+```{r}
+fit1b$summary()
+```
+
+Para c) Uniforme en [0,1]
+
+```{r}
+fit1c$summary()
+```
+  
+  f. Estima el momio de otorgar un crédito, i.e., $\phi=\frac{\theta}{1-\theta'}$, usando las 3 distribuciones
+finales del inciso (d).
+
+```{r}
+phi <- function(theta){
+  theta/(1-theta)
+}
+```
+
+Para a) Beta(89.4, 59.6)
+
+```{r}
+fit1a$draws('theta', format = "df") %>% 
+  mutate(phi=phi(theta)) %>% 
+  summarise(mean(phi))
+```
+
+Para b) Normal(0.6,0.04)
+
+```{r}
+fit1b$draws('theta', format = "df") %>% 
+  mutate(phi=phi(theta)) %>% 
+  summarise(mean(phi))
+```
+  
+Para c) Uniforme en [0,1]
+
+```{r}
+fit1c$draws('theta', format = "df") %>% 
+  mutate(phi=phi(theta)) %>% 
+  summarise(mean(phi))
+```
+
+## Pregunta 2
+
+Las utilidades mensuales de una compañía tienen una distribución $\mathcal{N}(\mu,\sigma^2)$ (aquí se da la varianza, no la precisión). 
+Suponer que una muestra de 10 meses de esta compañía dio como resultado las siguientes utilidades: (212, 207, 210, 196, 223, 193,
+196, 210, 202, 221).
+
+```{r}
+datos_2 <- c(212, 207, 210, 196, 223, 193, 196, 210, 202, 221)
+```
+
+
+  a. La incertidumbre sobre la utilidad promedio anual $\mu$ se puede representar por una distribución $\mathcal{N}(200, 40)$, y la incertidumbre de la desviación estándar de las utilidades mensuales se puede representar mediante una distribución $\mathcal{G} (10, 1)$. Mediante la distribución posterior estima $\mu$ y $\sigma^2$.
+  
+```{r}
+data_list <- list(
+  N = length(datos_2),
+  datos_2 = datos_2
+)
+
+modelo_2 <- cmdstan_model("./parcial1ej2.stan")
+```
+
+```{r}
+print(modelo_2)
+```
+
+```{r}
+fit2 <- modelo_2$sample(
+  data = data_list, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+```
+
+```{r}
+fit2
+```
+
+  
+  b. Utilizando una distribución inicial no informativa, estima mediante la correspondiente distribución inicial $\mu$ y $\sigma^2$.
+  
+```{r}
+mean(datos_2)
+sd(datos_2)
+```
+  
+Como distribuciones poco informativas se utilizó:
+  
+  * una normal N(150,300)
+
+  * una normal N(10,20)
+  
+```{r}
+modelo_2b <- cmdstan_model("./parcial1ej2b.stan")
+print(modelo_2b)
+```
+
+```{r}
+fit2b <- modelo_2b$sample(
+  data = data_list, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+```
+
+```{r}
+fit2b
+```
+
+
+
+## Pregunta 3
+
+A continuación se presenta una base de datos de calificaciones de 20 empresas financieras hechas por las dos compañías calificadores más importantes S&P y Moody’s (ver el archivo calificaciones.txt. Realiza un análisis Bayesiano completo de los datos, ajustando un modelo de regresión lineal, tomando como variable respuesta las calificaciones de S&P y como variable explicativa las calificaciones de
+Moody’s.
+
+Nuestro Modelo es:
+
+$$Y_{S\&P}= \beta_0+\beta_1X_{Moody's}$$
+donde:
+  $$Y_{S\&P} \sim \mathcal{N}(\mu, \sigma)$$
+  $$\beta_0 \sim \mathcal{N}(0, 1)$$
+  $$\beta_1\sim \mathcal{N}(1, 1)$$
+  $$\sigma \sim \mathcal{N}(0, 1)$$
+```{r}
+sim_calificaciones<- function(n= 10){
+  beta0 <- rnorm(1, 0, 1)
+  beta1 <- rnorm(1, 1, 1)
+  sigma <- abs(rnorm(1, 0, 1))
+  # simular Moody's
+  MO <- rnorm(n, 5, 3)
+  mu_MO = beta0 + beta1 * MO
+  # simular perturbación de calificacion
+  U <- rnorm(n, 0, sigma)
+  # regresión lineal de SP dado MO
+  SP <- mu_MO + U
+  tibble(beta0, beta1, sigma, MO, SP)
+}
+```
+
+```{r}
+sims_tbl <- map_df(1:20, function(rep) {
+  sim_calificaciones(100) |> mutate(rep = rep)
+})
+```
+
+```{r}
+sims_tbl |> 
+  ggplot(aes(x = MO, y = SP)) +
+  geom_point() +
+  geom_abline(aes(intercept = beta0 * beta1, slope = beta1), data = sims_tbl, color = "red") +
+  labs(x = "Moody's", y = "S&P") +
+  facet_wrap(~rep)
+```
+
+
+
+Lucen como suposiciones razonables, por lo que nos movemos al siguiente paso, el modelo
+
+
+```{r}
+# Read a txt file, named "mtcars.txt"
+calificaciones <- read.table("./datos/calificaciones.txt", header = TRUE, sep = "", dec = ".")
+glimpse(calificaciones)
+
+```
+
+
+```{r}
+modelo_3 <- cmdstan_model("./parcial1ej3.stan")
+print(modelo_3)
+```
+
+```{r}
+data_list <- list(
+  N = nrow(calificaciones),
+  calificaciones_SP = calificaciones$SP,
+  calificaciones_MO = calificaciones$MO
+)
+```
+
+
+
+```{r}
+fit3 <- modelo_3$sample(
+  data = data_list, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+```
+
+
+```{r}
+fit3
+```
+
+```{r}
+calificaciones <- calificaciones %>% mutate(SP_line = -1.09 + 0.72 * MO)
+
+plot(calificaciones$MO, calificaciones$SP, pch = 16, col = "blue", xlab = "Moody's", ylab = "S&P")
+lines(calificaciones$MO, calificaciones$SP_line, col = "red", type = "l")
+  
+```
+
+La recta ajusta bien a nuestras observaciones.
+
+## Pregunta 4
+
+Un investigador desea evaluar la relación entre el salario anual de trabajadores de una compañía de nivel medio y alto ($Y$ , en miles de dólares) y el índice de calidad de trabajo ($X_1$), número de años de experiencia ($X_2$) y el índice de éxito en publicaciones ($X_3$). La muestra consiste de 24 trabajadores. Realiza un análisis Bayesiano completo de los datos y obtén las predicciones de salarios para 3 nuevos empleados con variables explicativas:
+
+$$x_{1F}' = (5, 4, 17, 6, 0),$$
+$$x_{2F}' = (6, 2, 12, 5, 8),$$
+$$x_{3F}' = (6, 4, 21, 6,1)$$
+Los datos se encuentran en el archivo salarios.txt.
+
+```{r}
+# Read a txt file, named "mtcars.txt"
+salarios <- read.table("./datos/salarios.txt", header = TRUE, sep = "", dec = ".")
+glimpse(salarios)
+x1_p <- c(5, 4, 17, 6, 0)
+x2_p <- c(6, 2, 12, 5, 8)
+x3_p <- c(6, 4, 21, 6, 1)
+datos_4 <- tibble(x1_p, x2_p, x3_p)
+glimpse(datos_4)
+```
+
+Nuestro modelo es:
+$$ Y_{media} = \beta_0 + \beta_1 * X_1 + \beta_2 * X_2 + \beta_3 * X_3;$$
+  $$Y  \sim \mathcal{N}(Y_{media}, \sigma)$$
+  $$\beta_0  \sim \mathcal{N}(0, 1)$$
+  $$\beta_1  \sim \mathcal{N}(0, 1)$$
+  $$\beta_2  \sim \mathcal{N}(0, 1)$$
+  $$\beta_3  \sim \mathcal{N}(0, 1)$$
+  $$\sigma \sim \mathcal{N}(0, 1)$$
+```{r}
+sim_salarios<- function(n= 10){
+  beta0 <- rnorm(1, 0, 1)
+  beta1 <- rnorm(1, 0, 1)
+  beta2 <- rnorm(1, 0, 1)
+  beta3 <- rnorm(1, 0, 1)
+  sigma <- abs(rnorm(1, 0, 1))
+  X1 <-rnorm(n, 5, 3)
+  X2 <-rnorm(n, 25, 15)
+  X3 <-rnorm(n, 6, 3)
+  mu_y = beta0 + beta1 * X1 + beta2 * X2 + beta3 * X3
+  Y <- rnorm(n, mu_y, sigma)
+  tibble(beta0, beta1, beta2, beta3, sigma, X1, X2, X3, Y)
+}
+```
+
+```{r}
+sims_tbl <- map_df(1:20, function(rep) {
+  sim_salarios(100) |> mutate(rep = rep)
+})
+```
+
+```{r}
+sims_tbl |> 
+  ggplot(aes(x = X1, y = Y)) +
+  geom_point() +
+  # geom_abline(aes(intercept = beta0 - 160 * beta1, slope = beta1), data = sims_tbl, color = "red") +
+  labs(x = "índice de calidad de trabajo ", y = "Salario anual en miles de dolares") +
+  facet_wrap(~rep)
+```
+
+```{r}
+sims_tbl |> 
+  ggplot(aes(x = X2, y = Y)) +
+  geom_point() +
+  # geom_abline(aes(intercept = beta0 - 160 * beta1, slope = beta1), data = sims_tbl, color = "red") +
+  labs(x = "número de años de experiencia ", y = "Salario anual en miles de dolares") +
+  facet_wrap(~rep)
+```
+
+```{r}
+sims_tbl |> 
+  ggplot(aes(x = X3, y = Y)) +
+  geom_point() +
+  # geom_abline(aes(intercept = beta0 - 160 * beta1, slope = beta1), data = sims_tbl, color = "red") +
+  labs(x = "índice de éxito en publicaciones", y = "Salario anual en miles de dolares") +
+  facet_wrap(~rep)
+```
+
+Las simulaciones lucen razonables, por lo que procederemos a correr el modelo
+
+
+```{r}
+modelo_4 <- cmdstan_model("./parcial1ej4.stan")
+print(modelo_4)
+```
+
+```{r}
+# Para el dato 1 predicción:
+data_list_1 <- list(
+  N = nrow(salarios),
+  Y = salarios$Y,
+  X1 = salarios$X1,
+  X2 = salarios$X2,
+  X3 = salarios$X3,
+  # M = nrow(datos_4),
+  X1_P = x1_p[1],
+  X2_P = x2_p[1],
+  X3_P = x3_p[1]
+)
+fit4_1 <- modelo_4$sample(
+  data = data_list_1, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+fit4_1$summary(c( "pred"))
+
+# Para el dato 2 predicción:
+data_list_1 <- list(
+  N = nrow(salarios),
+  Y = salarios$Y,
+  X1 = salarios$X1,
+  X2 = salarios$X2,
+  X3 = salarios$X3,
+  # M = nrow(datos_4),
+  X1_P = x1_p[2],
+  X2_P = x2_p[2],
+  X3_P = x3_p[2]
+)
+fit4_1 <- modelo_4$sample(
+  data = data_list_1, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+fit4_1$summary(c( "pred"))
+
+# Para el dato 3 predicción:
+data_list_1 <- list(
+  N = nrow(salarios),
+  Y = salarios$Y,
+  X1 = salarios$X1,
+  X2 = salarios$X2,
+  X3 = salarios$X3,
+  # M = nrow(datos_4),
+  X1_P = x1_p[3],
+  X2_P = x2_p[3],
+  X3_P = x3_p[3]
+)
+fit4_1 <- modelo_4$sample(
+  data = data_list_1, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+fit4_1$summary(c( "pred"))
+
+# Para el dato 4 predicción:
+data_list_1 <- list(
+  N = nrow(salarios),
+  Y = salarios$Y,
+  X1 = salarios$X1,
+  X2 = salarios$X2,
+  X3 = salarios$X3,
+  # M = nrow(datos_4),
+  X1_P = x1_p[4],
+  X2_P = x2_p[4],
+  X3_P = x3_p[4]
+)
+fit4_1 <- modelo_4$sample(
+  data = data_list_1, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+fit4_1$summary(c( "pred"))
+
+# Para el dato 5 predicción:
+data_list_1 <- list(
+  N = nrow(salarios),
+  Y = salarios$Y,
+  X1 = salarios$X1,
+  X2 = salarios$X2,
+  X3 = salarios$X3,
+  # M = nrow(datos_4),
+  X1_P = x1_p[5],
+  X2_P = x2_p[5],
+  X3_P = x3_p[5]
+)
+fit4_1 <- modelo_4$sample(
+  data = data_list_1, 
+  chains = 4, 
+  iter_sampling = 2000, 
+  iter_warmup = 500,
+  show_messages = FALSE,
+  show_exceptions = FALSE)
+fit4_1$summary(c( "pred"))
+```
+```{r}
+fit4_1$summary()
+```
+
+Revisamos que los valores predichos hagan sentido con los observados
+
+
+```{r}
+xlim <- range(c(0,25))
+ylim <- range(c(0,102))
+Y_p <- c(31.28429, 22.18005, 100.5972, 33.1545, 7.392581)
+predic_4 <- tibble(Y=Y_p, X1=x1_p, X2=x2_p, X3=x3_p)
+plot(salarios$X1, salarios$Y, pch = 16, col = "blue", xlab = "X1", ylab = "Salarios",xlim=xlim, ylim=ylim)
+points(predic_4$X1, predic_4$Y, pch = 20, col = "red")
+```
+
+```{r}
+Y_p <- c(31.28429, 22.18005, 100.5972, 33.1545, 7.392581)
+predic_4 <- tibble(Y=Y_p, X1=x1_p, X2=x2_p, X3=x3_p)
+plot(salarios$X2, salarios$Y, pch = 16, col = "blue", xlab = "X2", ylab = "Salarios",xlim=xlim, ylim=ylim)
+points(predic_4$X2, predic_4$Y, pch = 20, col = "red")
+```
+
+
+```{r}
+Y_p <- c(31.28429, 22.18005, 100.5972, 33.1545, 7.392581)
+predic_4 <- tibble(Y=Y_p, X1=x1_p, X2=x2_p, X3=x3_p)
+plot(salarios$X3, salarios$Y, pch = 16, col = "blue", xlab = "X3", ylab = "Salarios",xlim=xlim, ylim=ylim)
+points(predic_4$X3, predic_4$Y, pch = 20, col = "red")
+```
+
+Podemos ver que ajusta bien salvo por un dato atípico.
+
+
+## Pregunta 5
+
+Una compañía de seguros quiere lanzar un nuevo seguro médico para mineros. Para ello desea estimar la probabilidad de muerte ($\pi_i$), con base en el tiempo de exposición al mineral ($x_i$ en horas). Se cuenta con información de las muertes registradas entre 1950 y 1959, junto con el tiempo de exposición al mineral y el número de mineros expuestos. 
+
+Realiza un análisis Bayesiano de los datos y obtén la distribución predictiva del número de muertes suponiendo que hay 100 mineros con un tiempo de exposición de 200 horas. Los datos se encuentran en el archivo mortality.txt.
+
+```{r}
+mortality <- read.table("./datos/mortality.txt", header = TRUE, sep = "", dec = ".")
+glimpse(mortality)
+
+```
+
+El modelo es el siguiente: Para $i = 1, . . . , N$
+$$Y_i|\pi_i \sim Bin(n_i, \pi_i)$$
+$$logit(\pi_i) = \beta_0 + \beta_1x_i$$
+con $\beta_0 ∼ \mathcal{N} (0, 0.001)$ y $β1 ∼ N (0, 0.001)$.
+
+```{r}
+modelo_5 <- cmdstan_model("./parcial1ej5.stan")
+print(modelo_5)
+```
+
+
+```{r}
+data_list_5 <- list(
+  N = nrow(mortality),
+  x = mortality$x,
+  y = mortality$y,
+  n = mortality$n,
+  new_n = 100,
+  new_x = 200
+)
+fit5 <- modelo_5$sample(
+  data = data_list_5, 
+  chains = 2, 
+  iter_sampling = 50000, 
+  iter_warmup = 5000,
+show_messages = FALSE,
+show_exceptions = FALSE)
+fit5$summary()
+```
+
+```{r}
+mcmc_hist(fit5$draws("p_logit_res[6]"))
+```
+
+
+
+```{r}
+sims <- fit5$draws(c("pf"), format = "df")
+pred <- 0
+for (i in 1:length(sims)){
+  pred = pred + sum(rbinom(100, 1, sims[[1]][i]))
+}
+pred/length(sims)
+```
+
+Se calculan alrededor de 51 muertes de los 100 mineros expuestos 200 horas al mineral
+
+
+```{r}
+library(boot)
+data(coal)
+coal <- coal %>% mutate(year=as.integer(substr(date,1,4)),
+                accidents=as.integer(substr(date, 6,9))) %>% 
+  group_by(year) %>% 
+  summarise(accidents=sum(accidents))
+year_all <- seq(min(coal$year), max(coal$year))
+coal2<-data.frame(year=year_all)
+coal<-merge(x=coal2, y=coal, by='year', all.x = TRUE) %>% mutate()
+coal[is.na(coal)] <- 0
+coal$ID <- seq.int(nrow(coal))
+```
+
+
+En el mismo contexto del problema enunciado (que hicimos en la última clase), supongamos ahora que la compañía de seguros está interesada en modelar el número total de desastres (Yt) que ocurren en la mina. Se cuenta con N = 112 observaciones durante los años 1851 a 1962. Se proponen tres modelos:
+
+  i. Modelo con tasa variable en función del tiempo:
+$$Y_t|μ_t ∼ P oi(μ_t)$$
+$$log(μ_t) = β_0 + β_1x_t$$
+con $β_0 ∼ N (0, 0.001)$ y $β_1 ∼ N (0, 0.001)$.
+
+```{r}
+modelo_5i <- cmdstan_model("./parcial1ej5i.stan")
+print(modelo_5i)
+```
+
+```{r}
+data_list_5i <- list(
+  N = nrow(coal),
+  x = coal$ID,
+  y = coal$accidents
+)
+fit5i <- modelo_5i$sample(
+  data = data_list_5i, 
+  chains = 2, 
+  iter_sampling = 50000, 
+  iter_warmup = 5000,
+show_messages = FALSE,
+show_exceptions = FALSE)
+fit5i$summary()
+```
+
+```{r}
+# Assuming you have already fit the model and stored it in the `fit` object
+mu_samples <- fit5i$draws("mu_samples")
+```
+
+```{r}
+# Extract the number of chains and iterations
+n_chains <- dim(mu_samples)[2]
+iter <- dim(mu_samples)[1]
+N <- dim(mu_samples)[3]
+
+# Initialize an array to store the samples of mu
+mu_samples2 <- array(NA, dim = c(N, iter * n_chains))
+
+# Reconstruct the samples of mu for all years
+for (i in 1:N) {
+    for (j in 1:n_chains) {
+        start_idx <- (j - 1) * iter + 1
+        end_idx <- j * iter
+        mu_samples2[i, start_idx:end_idx] <- exp(mu_samples[, j, i])
+    }
+}
+
+# Initialize an array to store the samples of Y
+y_samples <- array(NA, dim = c(N, iter * n_chains))
+
+# Generate samples of Y for each year
+for (i in 1:N) {
+    y_samples[i, ] <- rpois(iter * n_chains, mu_samples2[i, ])
+}
+```
+
+```{r}
+hist(y_samples)
+```
+
+
+
+
+
+
+
+```{r}
+mean(fit5i$draws("yf1[50]"))
+mcmc_hist(fit5i$draws("yf1[50]"), binwidth = 1)
+```
+
+```{r}
+mcmc_hist(fit5i$draws("mu[50]"))
+```
+
+
+
+
+
+  ii. Modelo con tasa constante en dos períodos: Se cree que la tasa promedio de desastres es constante, pero que en el siglo XX la tasa ha disminuido.
+  
+Esto se traduce en el siguiente modelo:
+$$Y_t|μ_t ∼ Poi(μ_t)$$
+$$log(μ_t) = β_0 + β_1I(t ≥ τ )$$
+con $β_0 ∼ N (0, 0.001)$ y $β_1 ∼ N (0, 0.001)$ y $τ ∼ U \{1, . . . , N \}$.
+
+```{r}
+modelo_5ii <- cmdstan_model("./parcial1ej5ii.stan")
+print(modelo_5ii)
+```
+
+
+```{r}
+fit5ii <- modelo_5ii$sample(
+  data = data_list_5i, 
+  chains = 2, 
+  iter_sampling = 50000, 
+  iter_warmup = 5000,
+show_messages = FALSE,
+show_exceptions = FALSE)
+fit5ii$summary()
+```
+
+```{r}
+mcmc_hist(fit5ii$draws("yf1[6]"), binwidth = 1)
+```
+
+```{r}
+mean(fit5ii$draws("mu[6]"))
+mcmc_hist(fit5ii$draws("mu[6]"))
+```
+
+```{r}
+mean(fit5ii$draws("tau"))
+```
+
+
+
+
+
