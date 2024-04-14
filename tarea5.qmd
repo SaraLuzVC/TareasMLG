@@ -6,10 +6,15 @@ editor: source
 ---
 # Tarea 5
 
+
 ```{r echo=FALSE, message=FALSE}
 library(rstan)
-
+library(tidyverse)
+library(cmdstanr)
+library(dplyr)
+library('bayesplot')
 ```
+
 
 ## 1. hierarchical_betaBlocker
 
@@ -19,11 +24,11 @@ El objetivo de este meta-análisis es determinar un estimador robusto del efecto
 
 ### a. Posterior 
 
-Comienza suponiendo que el número de muertes en los grupos de control (\$r^c_i\$) y de tratamiento (\$r^t_i\$) de cada ensayo están dados por distribuciones binomiales de la forma: \$r^c_i ∼ Bin (n^c_i , p^c_i)\$ y \$r^t_i ∼ Bin (n^t_i, p^t_i)\$, donde \$(n^c_i , n^t_i)\$ son el número de individuos en los grupos de control y tratamiento respectivamente.
+Comienza suponiendo que el número de muertes en los grupos de control ($r_i^c$) y de tratamiento ($r_i^t$) de cada ensayo están dados por distribuciones binomiales de la forma: $r_i^c \sim \textbf{Bin} (n^c_i , p^c_i )$ y $r_i^t \sim \textbf{Bin} n^t_i , p^t_i$, donde $(n^c_i , n^t_i )$ son el número de individuos en los grupos de control y tratamiento respectivamente.
 
-Adicionalmente suponer que las probabilidades de mortalidad en los conjuntos de control y tratamento están dados por: \$logit(p^c_i) = μ_i\$ y \$logit(p^t_i) = μ_i + δ_i\$. Se espera que \$δ_i < 0\$ si los beta-bloqueadores tienen el efecto deseado. Se asumen las siguientes iniciales para los parámetros: \$μ_i ∼ N (0, 10)\$ y \$δ_i ∼ N (0, 10)\$.
+Adicionalmente suponer que las probabilidades de mortalidad en los conjuntos de tratamiento y control están dados por: $logit(p^c_i ) = \mu_i$ y $logit(p^t_i ) = \mu_i + \delta_i$ . Se espera que $\delta_i < 0$ si los beta-bloqueadores tienen el efecto deseado. Se asumen las siguientes iniciales para los parámetros: $\mu_i \sim \mathcal{N} (0, 10)$ y $\delta_i \sim \mathcal{N} (0, 10)$.
 
-Estimar la posterior para \$δ_i\$ usando el modelo indicado. Notar que para este modelo no hay interdependencia entre los estudios.
+  Estimar la posterior para $\delta_i$ usando el modelo indicado. Notar que para este modelo no hay interdependencia entre los estudios.
 
 ```{r echo=FALSE}
 
@@ -34,12 +39,12 @@ data <- read.csv('hierarchical_betaBlocker.csv')
 
 El problema que estamos abordando es el de estimar la efectividad de los beta-bloqueadores en la reducción del riesgo de infarto. Para ello, tenemos datos de 22 ensayos clínicos, cada uno con información sobre el número de muertes en los grupos de tratamiento y control, así como el tamaño de la muestra en cada grupo.
 
-Buscamos estimar la diferencia en la probabilidad de mortalidad entre los grupos de tratamiento y control, representada por \$δ_i\$​. Esta diferencia se modela utilizando un enfoque de regresión logística, donde las probabilidades de mortalidad en los grupos de tratamiento \$(p^t_i​)\$ y control \$(p^c_i​)$ se expresan en términos de los parámetros \$μ_i\$​ y \$δ_i\$​, respectivamente.
+Buscamos estimar la diferencia en la probabilidad de mortalidad entre los grupos de tratamiento y control, representada por $δ_i$. Esta diferencia se modela utilizando un enfoque de regresión logística, donde las probabilidades de mortalidad en los grupos de tratamiento $(p^t_i)$ y control $(p^c_i)$ se expresan en términos de los parámetros $μ_i$ y $δ_i$, respectivamente.
 
 Sabemos que:
 
-* \$μ_i\$​ representa la probabilidad logit de mortalidad en el grupo de control
-* \$δ_i\$​ representa la diferencia en la probabilidad de mortalidad entre los grupos de tratamiento y control.
+* $μ_i$ representa la probabilidad logit de mortalidad en el grupo de control
+* $δ_i$ representa la diferencia en la probabilidad de mortalidad entre los grupos de tratamiento y control.
 
 De acuerdo a los datos, especificamos el siguiente modelo en stan:
 
@@ -96,7 +101,7 @@ stan_samples <- sampling(stan_model, data = stan_data, iter = 1000, chains = 4)
 ```
 
 
-A continuación presentamos una gráfica para observar el rango de valores para cada \$\mu_i\$
+A continuación presentamos una gráfica para observar el rango de valores para cada $\mu_i$
 
 
 ```{r}
@@ -105,7 +110,7 @@ plot(stan_samples, pars = c("mu"))
 
 ```
 
-A continuación presentamos una gráfica para observar el rango de valores para cada \$\delta_i\$
+A continuación presentamos una gráfica para observar el rango de valores para cada $\delta_i$
 
 ```{r}
 
@@ -113,12 +118,12 @@ plot(stan_samples, pars = c("delta"))
 
 ```
 
-FInalmente, presentamos los histogramas para las distribuciones posteriores para cada \$\mu_i\$ y \$\delta_i\$
+FInalmente, presentamos los histogramas para las distribuciones posteriores para cada $\mu_i$ y $\delta_i$
 
 ```{r}
 
 # Extraer muestras de la posterior para mu y delta
-posterior_samples <- extract(stan_samples)
+posterior_samples <- rstan::extract(stan_samples)
 
 # Obtener muestras de la posterior para mu y delta
 mu_samples <- posterior_samples$mu
@@ -126,13 +131,13 @@ delta_samples <- posterior_samples$delta
 
 ```
 
-Histogramas de las posteriores de \$\mu_i\$
+Histogramas de las posteriores de $\mu_i$
 
 ```{r}
 
 # Graficar las distribuciones posteriores de mu y delta para cada estudio
 
-par(mfrow = c(5, 5))
+# par(mfrow = c(5, 5))
   
 for (i in 1:22) {
 
@@ -143,10 +148,10 @@ for (i in 1:22) {
 
 ```
 
-Histogramas de las posteriores de \$\delta_i\$
+Histogramas de las posteriores de $\delta_i$
 
 ```{r}
-par(mfrow = c(5, 5))
+# par(mfrow = c(5, 5))
 
 for (i in 1:22) {
   
@@ -160,14 +165,14 @@ for (i in 1:22) {
 
 Conclusiones: 
 
-* Variabilidad entre estudios: Como podemos observar, hay una amplia variabilidad en las distribuciones posteriores de \$δ_i\$​, esto podría indicar que el efecto de los beta-bloqueadores varía según el contexto o las características de cada estudio.
+* Variabilidad entre estudios: Como podemos observar, hay una amplia variabilidad en las distribuciones posteriores de $δ_i$, esto podría indicar que el efecto de los beta-bloqueadores varía según el contexto o las características de cada estudio.
 
-* Efecto del tratamiento: La media de las \$\delta_i\$ se encuentran en el rango entre -0.77 y 0.53, sin embargo existe una clara tendencia a ser negativas, lo que indica que los beta-bloqueadores tienen un efecto beneficioso significativo en la reducción del riesgo de infarto en la mayoría de los estudios.
+* Efecto del tratamiento: La media de las $\delta_i$ se encuentran en el rango entre -0.77 y 0.53, sin embargo existe una clara tendencia a ser negativas, lo que indica que los beta-bloqueadores tienen un efecto beneficioso significativo en la reducción del riesgo de infarto en la mayoría de los estudios.
 
 
 ### b. modelo jerárquico
 
-Un marco alternativo es un modelo jerárquico donde se supone que hay una distribución común para todos los ensayos tal que \$δ_i ∼ N (d, σ^2)\$. Suponiendo las siguientes distribuciones iniciales de estos parámetros estimar este modelo: \$d ∼ N (0, 10)\$, \$σ^2 ∼ Cauchy(0, 2.5)\$
+Un marco alternativo es un modelo jerárquico donde se supone que hay una distribución común para todos los ensayos tal que $δ_i ∼ N (d, σ^2)$. Suponiendo las siguientes distribuciones iniciales de estos parámetros estimar este modelo: $d ∼ N (0, 10)$, $σ^2 ∼ Cauchy(0, 2.5)$
 
 
 Ajustaremos el modelo para obtener un modelo jerárquico  que supone que todos los efectos del tratamiento \$δ_i\$ se distribuyen normalmente con una media común \$d\$ y una desviación estándar común \$σ\$
@@ -228,7 +233,7 @@ stan_samples <- sampling(stan_model, data = stan_data, iter = 10000, chains = 4)
 
 ```
 
-A continuación presentamos una gráfica para observar el rango de valores para \$\mu\$
+A continuación presentamos una gráfica para observar el rango de valores para $\mu$
 
 ```{r}
 
@@ -236,7 +241,7 @@ plot(stan_samples, pars = c("mu"))
 
 ```
 
-A continuación presentamos una gráfica para observar el rango de valores para cada \$\delta\$
+A continuación presentamos una gráfica para observar el rango de valores para cada $\delta$
 
 ```{r}
 
@@ -244,12 +249,12 @@ plot(stan_samples, pars = c("delta"))
 
 ```
 
-FInalmente, presentamos los histogramas para las distribuciones posteriores para cada \$\mu_i\$ y \$\delta_i\$
+FInalmente, presentamos los histogramas para las distribuciones posteriores para cada $\mu_i$ y $\delta_i$
 
 ```{r}
 
 # Extraer muestras de la posterior para mu y delta
-posterior_samples <- extract(stan_samples)
+posterior_samples <- rstan::extract(stan_samples)
 
 # Obtener muestras de la posterior para mu y delta
 mu_samples <- posterior_samples$mu
@@ -257,13 +262,13 @@ delta_samples <- posterior_samples$delta
 
 ```
 
-Histogramas de las posteriores de \$\mu_i\$
+Histogramas de las posteriores de $\mu_i$
 
 ```{r}
 
 # Graficar las distribuciones posteriores de mu y delta para cada estudio
 
-par(mfrow = c(5, 5))
+# par(mfrow = c(5, 5))
   
 for (i in 1:22) {
 
@@ -274,10 +279,10 @@ for (i in 1:22) {
 
 ```
 
-Histogramas de las posteriores de \$\delta_i\$
+Histogramas de las posteriores de $\delta_i$
 
 ```{r}
-par(mfrow = c(5, 5))
+# par(mfrow = c(5, 5))
 
 for (i in 1:22) {
   
@@ -293,28 +298,26 @@ conclusiones:
 
 * Como vemos, la diferencia principal entre este modelo jerárquico y el modelo anterior radica en cómo se modela la variabilidad entre los efectos del tratamiento:
   
-  * En el modelo original, se suponía que cada efecto del tratamiento \$δ_j\$ tenía su propia distribución independiente, con su propia media y desviación estándar, por lo que no hay un mecanismo para compartir información entre los diferentes efectos del tratamiento. 
+  * En el modelo original, se suponía que cada efecto del tratamiento $δ_j$ tenía su propia distribución independiente, con su propia media y desviación estándar, por lo que no hay un mecanismo para compartir información entre los diferentes efectos del tratamiento. 
   
-  * En el modelo jerárquico, en cambio, se introduce una distribución común para todos los efectos del tratamiento. Esto se logra al modelar cada \$δ_j\$ como una muestra de una distribución normal con una media común \$μ\$ y una desviación estándar común \$σ\$. Esta estructura jerárquica permite que los efectos del tratamiento compartan información entre sí.
+  * En el modelo jerárquico, en cambio, se introduce una distribución común para todos los efectos del tratamiento. Esto se logra al modelar cada $δ_j$ como una muestra de una distribución normal con una media común $μ$ y una desviación estándar común $σ$. Esta estructura jerárquica permite que los efectos del tratamiento compartan información entre sí.
 
-  * Variabilidad entre estudios: Como podemos observar, hay una variabilidad considerablemente menor en las distribuciones posteriores de \$δ_i\$ en comparación con las del modelo anterior​, esto indica que el efecto de los beta-bloqueadores varía poco según el contexto o las características de cada estudio pues están relacionados entre sí.
+  * Variabilidad entre estudios: Como podemos observar, hay una variabilidad considerablemente menor en las distribuciones posteriores de $δ_i$ en comparación con las del modelo anterior​, esto indica que el efecto de los beta-bloqueadores varía poco según el contexto o las características de cada estudio pues están relacionados entre sí.
 
-  * Efecto del tratamiento: La media de las \$\delta_i\$ se encuentran en el rango entre -0.37 y -0.09, presentando una clara tendencia a ser negativas, lo que indica que los beta-bloqueadores tienen un efecto consistente y considerablemente beneficioso en la reducción del riesgo de infarto en todos los estudios.
+  * Efecto del tratamiento: La media de las $\delta_i$ se encuentran en el rango entre -0.37 y -0.09, presentando una clara tendencia a ser negativas, lo que indica que los beta-bloqueadores tienen un efecto consistente y considerablemente beneficioso en la reducción del riesgo de infarto en todos los estudios.
 
 
 ### c. Estimación
 
-Para un ensayo fuera de la muestra suponer que se sabe que \$μ_i = 2.5\$. Usando la esti-
-mación de \$δ\$ del estudio cruzado, estimar la reducción en probabilidad para un paciente
-que toma beta-bloqueadores.
+Para un ensayo fuera de la muestra suponer que se sabe que $μ_i = 2.5$. Usando la estimación de $δ$ del estudio cruzado, estimar la reducción en probabilidad para un paciente que toma beta-bloqueadores.
 
-Con \$μ_i = 2.5\$ tenemos información sobre la probabilidad de mortalidad en el grupo de control del ensayo específico. Queremos estimar la reducción en la probabilidad de mortalidad para un paciente que toma beta-bloqueadores, basándonos en la estimación de 
-\$δ\$ del estudio cruzado.
+Con $μ_i = 2.5$ tenemos información sobre la probabilidad de mortalidad en el grupo de control del ensayo específico. Queremos estimar la reducción en la probabilidad de mortalidad para un paciente que toma beta-bloqueadores, basándonos en la estimación de 
+$δ$ del estudio cruzado.
 
-* Para el grupo de control: \$p_c = logit^{−1}(\mu_i) = logit^{−1}(2.5)\$
-* Para el grupo de tratamiento: \$p_t = logit^{−1}(\mu_i\delta_{estudio cruzado}) = logit^{−1}(2.5 + \delta_{estudio cruzado})\$
-* La reducción en la probabilidad de mortalidad sería: Reducción = \$p_c − p_t\$
-​
+* Para el grupo de control: $p_c = logit^{−1}(\mu_i) = logit^{−1}(2.5)$
+* Para el grupo de tratamiento: $p_t = logit^{−1}(\mu_i\delta_{estudio cruzado}) = logit^{−1}(2.5 + \delta_{estudio cruzado})$
+* La reducción en la probabilidad de mortalidad sería: Reducción = $p_c − p_t$
+
 ```{r}
 
 reducciones_probabilidad_samples <- numeric(22)
@@ -348,7 +351,7 @@ print(resultados)
 
 ### d. 
 
-Estimar un modelo con sólo valores constantes \$δ\$ y \$μ\$ a través de los ensayos. Graficar la posterior de \$δ\$, y comparar con el estimador del modelo jerárquico del estudio.
+Estimar un modelo con sólo valores constantes $δ$ y $μ$ a través de los ensayos. Graficar la posterior de $δ$, y comparar con el estimador del modelo jerárquico del estudio.
 
 ```{r}
 
@@ -400,7 +403,7 @@ stan_samples <- sampling(stan_model, data = stan_data, iter = 10000, chains = 4)
 
 ```
 
-Graficamos la posterior de \$\delta\$ y su histograma
+Graficamos la posterior de $\delta$ y su histograma
 
 ```{r}
 
@@ -411,7 +414,7 @@ plot(stan_samples, pars = "delta")
 
 ```{r}
 
-posterior_samples <- extract(stan_samples)
+posterior_samples <- rstan::extract(stan_samples)
 
 par(mfrow = c(1, 1))
 
@@ -425,5 +428,111 @@ hist(posterior_samples$delta, breaks = 30, col = "#379b9b", xlab = "Delta", ylab
 Conclusiones:
 
 * Complejidad del modelo: El modelo con solo valores constantes es menos complejo que el modelo jerárquico, ya que no tiene parámetros aleatorios ni estructura jerárquica.
-* Flexibilidad: El modelo jerárquico permite que los efectos del tratamiento \$δ\$ y del control \$μ\$ varíen entre los ensayos, lo que captura mejor la heterogeneidad entre los estudios.
+* Flexibilidad: El modelo jerárquico permite que los efectos del tratamiento $δ$ y del control $μ$ varíen entre los ensayos, lo que captura mejor la heterogeneidad entre los estudios.
 * Observamos que la media de delta en este modelo es de -0.26 lo que refuerza el efecto beneficioso que observamos en el modelo jerárquico.
+
+
+
+
+
+
+
+
+
+
+
+
+  2. Los siguientes datos son de un estudio (Belenky, et. al. 2003) que mide el efecto de la privación del sueño en el desempeño cognitivo. Hubo 18 sujetos elegidos de una población de internet (conductores de camiones) a los que se les restringió 3 horas de sueño durante el ensayo. En cada día del experimento se midió el tiempo de reacción visual a un estímulo.
+Los datos para este ejemplo están en el archivo evaluation_sleepstudy.csv, consiste de tres variables: Reaction, Days y SubjetID, que mide el tiempo de reacción de un sujeto dado en un día particular.
+Un modelo simple que explica la variación en tiempos de reacción es un modelo de regresión lineal de la forma: $R(t) \sim \mathcal{N} (\alpha + \beta t, \sigma^2)$, donde $R(t)$ es el tiempo de reacción en el día $t$ del experimento a través de todas las observaciones.
+
+```{r}
+sleep <- read.csv("evaluation_sleepstudy.csv")
+print(unique(sleep$Subject))
+sleep <- sleep %>% 
+  mutate(Subject = Subject-307) %>%  # Arregle estos indices porque sino el modelo se queja
+  mutate(Subject = ifelse(Subject >= 23, Subject-19, Subject)) %>%
+  mutate(Subject = ifelse(Subject >= 11, Subject-1, Subject)) %>%
+  mutate(Subject = ifelse(Subject >= 22, Subject-11, Subject)) %>%
+  mutate(Subject = ifelse(Subject >= 31, Subject-16, Subject))
+glimpse(sleep)
+```
+
+```{r}
+mean(sleep$Reaction)
+```
+
+```{r}
+sd(sleep$Reaction)
+```
+
+
+a. Suponiendo iniciales $\mathcal{N} (0, 250)$ para ambos $\alpha$ y $\beta$, ajustar el modelo anterior, usando 1000 muestras por cadena, para cinco cadenas. £Converge el algoritmo?
+
+
+```{r}
+data_list = list(
+  N = nrow(sleep),
+  rt_obs = sleep$Reaction,
+  t = sleep$Days,
+  subject = sleep$Subject
+)
+
+modelo_2a <- cmdstan_model("./Tarea5_2a.stan")
+print(modelo_2a)
+```
+
+
+```{r}
+fit2a <- modelo_2a$sample(
+  data = data_list,
+  seed = 123,
+  chains = 5,
+  iter_sampling = 1000, 
+  iter_warmup = 1000,
+  # show_messages = FALSE,
+  # show_exceptions = FALSE
+  )
+```
+
+
+b. Graficar las muestras de la distribución posterior tanto de $\alpha$ como de $\beta$, £Cuál es la relación entre las dos variables y por qué?
+
+```{r}
+fit2a
+```
+
+
+```{r}
+# mcmc_hist(fit1a$draws("alpha"), binwidth = 40)
+```
+
+c. Generar muestras de la distribución posterior predictiva. Superponiendo la serie de tiempo real para cada individuo sobre la gráfica de la distribución posterior predictiva, comentar sobre el ajuste del modelo a los datos.
+
+
+
+d. Ajustar un modelo separado ($\alpha$, $\beta$) para cada individuo en el conjunto de datos. Usar independientes iniciales normales separadas $\mathcal{N} (0, 250)$ para cada parámetro. De nuevo, usar 1000 muestras por cadena para cinco cadenas.
+
+
+```{r}
+data_list <- list(
+  N = length(sleep),
+  rt_obs = sleep$Reaction,
+  t = sleep$Days,
+  subject = sleep$Subject
+)
+
+modelo_2d <- cmdstan_model("./Tarea5_2d.stan")
+print(modelo_2a)
+```
+
+e. Calcular los estimados de las medias posteriores de los parámetros $beta$ para el modelo de parámetros heterogéneos. £Cómo se compara esto al estimador $beta$ obtenido del modelo homogéneo?
+
+f. Generar muestras de la distribución predictiva posterior. Comparando los datos individuales de cada sujeto las muestras predictivas, comentar sobre el ajuste del nuevo modelo.
+
+g. Particionar los datos en dos subconjuntos: un conjunto de entrenamiento (sujetos 1-17) y un conjunto de prueba (sujeto 18). Ajustando ambos modelos heterogéneo y homogéneo con los datos de entrenamiento, calcular el desempeño de cada modelo para predecir el conjunto de prueba.
+
+h. Alternativamente, se puede ajustar un modelo jerárquico a los datos que (esperamos) capture algunos de los mejores elementos de cada uno de los modelos previos. Ajustar esta tal modelo usando normales iniciales para $\alpha_i$ y $\beta_i$ y distribuciones iniciales para los hiperparámetros de estas distribuciones.
+
+
+
