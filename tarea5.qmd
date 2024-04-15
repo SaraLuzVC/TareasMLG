@@ -474,8 +474,7 @@ a. Suponiendo iniciales $\mathcal{N} (0, 250)$ para ambos $\alpha$ y $\beta$, aj
 data_list = list(
   N = nrow(sleep),
   rt_obs = sleep$Reaction,
-  t = sleep$Days,
-  subject = sleep$Subject
+  t = sleep$Days
 )
 
 modelo_2a <- cmdstan_model("./Tarea5_2a.stan")
@@ -496,10 +495,28 @@ fit2a <- modelo_2a$sample(
 ```
 
 
+```{r}
+fit2a$summary()
+```
+
+
 b. Graficar las muestras de la distribución posterior tanto de $\alpha$ como de $\beta$, £Cuál es la relación entre las dos variables y por qué?
 
 ```{r}
-fit2a
+fit2a$draws(c("alpha","beta"), format = "df") %>%  
+  as_tibble() %>% 
+  pivot_longer(
+    cols = starts_with("alpha"),
+    names_to = "n",
+    names_prefix = "alpha",
+    values_to = "alpha") %>% 
+  pivot_longer(
+    cols = starts_with("beta"),
+    names_to = "n2",
+    names_prefix = "beta",
+    values_to = "beta")# %>% 
+  # ggplot(aes(x=.iteration, y=alpha)) + 
+  # geom_histogram(binwidth=1)
 ```
 
 
@@ -509,6 +526,9 @@ fit2a
 
 c. Generar muestras de la distribución posterior predictiva. Superponiendo la serie de tiempo real para cada individuo sobre la gráfica de la distribución posterior predictiva, comentar sobre el ajuste del modelo a los datos.
 
+```{r}
+
+```
 
 
 d. Ajustar un modelo separado ($\alpha$, $\beta$) para cada individuo en el conjunto de datos. Usar independientes iniciales normales separadas $\mathcal{N} (0, 250)$ para cada parámetro. De nuevo, usar 1000 muestras por cadena para cinco cadenas.
