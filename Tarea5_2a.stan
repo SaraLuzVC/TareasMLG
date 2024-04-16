@@ -12,8 +12,8 @@ parameters {
 
 transformed parameters {
   vector[N] media;
-  for (i in 1:N){
-    media[i] = alpha[i] + beta[i] * t[i]; //modelo dado
+  for (i in 1:N){ // MODELO AGREGADO
+    media[i] = alpha[i] + beta[i] * t[i]; //modelo dado OJO no se considera por sujeto
   }
 }
 
@@ -24,4 +24,5 @@ model {
   }
   alpha ~ normal(0, 250);  // distribucion dada
   beta ~ normal(0, 250);   // distribucion dada
+  sigma ~ normal(57,25); // propuesta tomando en cuenta los datos pero tratando de que sea poco informativa
 }

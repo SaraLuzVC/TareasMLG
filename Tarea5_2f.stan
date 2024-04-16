@@ -26,7 +26,10 @@ model {
   alpha ~ normal(0, 250);  // distribucion dada
   beta ~ normal(0, 250);   // distribucion dada
   sigma ~ normal(57,25); // propuesta tomando en cuenta los datos pero tratando de que sea poco informativa
-
 }
 
-
+generated quantities {
+vector[N] rt_sim; // store post-pred samples
+  for (i in 1:N)
+    rt_sim[i] = normal_rng(alpha[subject[i]] + beta[subject[i]] * t[i], sigma);
+}

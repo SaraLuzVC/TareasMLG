@@ -1,0 +1,29 @@
+---
+title: "Propuesta"
+author: "Alberto, Ivan, Sara, Valeria"
+format: pdf
+editor: visual
+---
+
+# Propuesta de Proyecto Final
+
+## Introducción
+
+De acuerdo con wikipedia, en la plataforma de Spotify se tiene acceso a más de 100 millones de canciones. Algunas canciones son más populares que otras. Si definimos a la variable $Y$ como un rating de popularidad con $Y \in [0,100]$. 
+
+## Datos
+: una descripción de los datos que se usan para el modelo, ya sean datos observados o simulados y el contexto en el que se utilizan.
+## Métodos:
+
+The Spotify music streaming platform provides listeners with access to more than 50 million songs. Of course, some songs are more popular than others. Let  
+Y
+  be a song’s Spotify popularity rating on a 0-100 scale. In general, the more recent plays that a song has on the platform, the higher its popularity rating. Thus, the popularity rating doesn’t necessarily measure a song’s overall quality, long-term popularity, or popularity beyond the Spotify audience. And though it will be tough to resist asking which song features  
+X
+  can help us predict ratings, we’ll focus on understanding  
+Y
+  alone. Specifically, we’d like to better understand the following:
+
+What’s the typical popularity of a Spotify song?
+To what extent does popularity vary from artist to artist?
+For any single artist, how much might popularity vary from song to song?
+Other than a vague sense that the average popularity rating is around 50, we don’t have any strong prior understanding about these dynamics, and thus will be utilizing weakly informative priors throughout our Spotify analysis. With that, let’s dig into the data. The spotify data in the bayesrules package is a subset of data analyzed by Kaylin Pavlik (2019) and distributed through the #TidyTuesday project (R for Data Science 2020d). It includes information on 350 songs on Spotify.68
