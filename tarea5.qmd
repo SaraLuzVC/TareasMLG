@@ -3,6 +3,8 @@ title: "Tarea5"
 author: "Alberto, Ivan, Sara, Valeria"
 format: pdf
 editor: source
+execute:
+  cache: true
 ---
 # Tarea 5
 
@@ -716,5 +718,21 @@ fit2g <- modelo_2g$sample(
 
 Alternativamente, se puede ajustar un modelo jerárquico a los datos que (esperamos) capture algunos de los mejores elementos de cada uno de los modelos previos. Ajustar esta tal modelo usando normales iniciales para $\alpha_i$ y $\beta_i$ y distribuciones iniciales para los hiperparámetros de estas distribuciones.
 
+```{r}
+modelo_2h <- cmdstan_model("./Tarea5_2h.stan")
+print(modelo_2h)
+```
+
+```{r}
+fit2h <- modelo_2h$sample(
+  data = data_list,
+  seed = 123,
+  chains = 5,
+  iter_sampling = 1000, 
+  iter_warmup = 1000,
+  # show_messages = FALSE,
+  # show_exceptions = FALSE
+  )
+```
 
 
