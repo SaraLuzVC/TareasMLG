@@ -7,23 +7,51 @@ editor: visual
 
 # Propuesta de Proyecto Final
 
+```{r message=FALSE}
+library(bayesrules)
+library(tidyverse)
+```
+
+
 ## Introducción
 
-De acuerdo con wikipedia, en la plataforma de Spotify se tiene acceso a más de 100 millones de canciones. Algunas canciones son más populares que otras. Si definimos a la variable $Y$ como un rating de popularidad con $Y \in [0,100]$. 
+De acuerdo con wikipedia, en la plataforma de Spotify se tiene acceso a más de 100 millones de canciones. Algunas canciones son más populares que otras. Si definimos a la variable $Y$ como un rating de popularidad con $Y \in [0,100]$. En general, entre más  reporducciones recientes tenga una  una canción, su rating de popularidad será mayor.
+
+Sabemos que la popularidad de una canción, no siempre es reflejo de su calidad, popularidad a largo plazo, o popularidad afuera de la audiencia de Spotify.
+
+Además del artista hay otras características que hacen popular a una canción, como la "valencia", que define que tan alegre suena una pieza.
+
+Para el proyecto nos enfocaremos en entender:
+
+  * Cual es la popularidad típica de una canción en Spotify?
+  * Hasta donde influye el artista en la popularidad de la canción?
+  * Para un sólo artista, cómo varía la popularidad de sus canciones?
+  * Como influye la valencia en la popularidad de una canción?
 
 ## Datos
-: una descripción de los datos que se usan para el modelo, ya sean datos observados o simulados y el contexto en el que se utilizan.
+
+Para este proyecto usaremos la base de datos "spotify" del paquete "bayesrules".
+
+
+
+```{r}
+data(spotify)
+glimpse(spotify)
+nlevels(spotify$artist)
+```
+
+La base de datos consta de 350 canciones de 44 artistas.
+
 ## Métodos:
 
-The Spotify music streaming platform provides listeners with access to more than 50 million songs. Of course, some songs are more popular than others. Let  
-Y
-  be a song’s Spotify popularity rating on a 0-100 scale. In general, the more recent plays that a song has on the platform, the higher its popularity rating. Thus, the popularity rating doesn’t necessarily measure a song’s overall quality, long-term popularity, or popularity beyond the Spotify audience. And though it will be tough to resist asking which song features  
-X
-  can help us predict ratings, we’ll focus on understanding  
-Y
-  alone. Specifically, we’d like to better understand the following:
+Para nuestro proyecto planeamos hacer tres tipos de modelos:
 
-What’s the typical popularity of a Spotify song?
-To what extent does popularity vary from artist to artist?
-For any single artist, how much might popularity vary from song to song?
-Other than a vague sense that the average popularity rating is around 50, we don’t have any strong prior understanding about these dynamics, and thus will be utilizing weakly informative priors throughout our Spotify analysis. With that, let’s dig into the data. The spotify data in the bayesrules package is a subset of data analyzed by Kaylin Pavlik (2019) and distributed through the #TidyTuesday project (R for Data Science 2020d). It includes information on 350 songs on Spotify.68
+  * **Modelo con parámetros homogéneos:** Modelar la popularidad de las canciones sin tomar en cuenta el artista.
+  * **Modelo con parámetros heterogéneos:** Modelar la popularidad de las canciones tomando en cuenta a los artistas que las interpretan.
+  * **Modelo Jerárquico** Una alternativa intermedia donde permitimos que la distribución inicial sobre la popularidad pueda adaptarse a los datos. 
+Y comparar sus distribuciones predictivas con los datos observados, para ver cuál modela mejor y porqué.
+  * **Modelo Jerarquico con DAG**: Haremos un DAG para agregar al modelo jerárquico la variable de valencia.
+
+
+
+
